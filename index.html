@@ -347,6 +347,206 @@ function WA(){
 /* ══════════════════════════════════════════
    DASHBOARD
 ══════════════════════════════════════════ */
+const PAGE_SIZE = 6;
+
+async function uploadImage(file) {
+  const ext = file.name.split('.').pop();
+  const fname = `${Date.now()}_${Math.random().toString(36).slice(2)}.${ext}`;
+  const res = await fetch(`${SB_URL}/storage/v1/object/produits/${fname}`, {
+    method: "POST",
+    headers: { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}`, "Content-Type": file.type },
+    body: file,
+  });
+  if (!res.ok) throw new Error(await res.text());
+  return `${SB_URL}/storage/v1/object/public/produits/${fname}`;
+}
+
+function ProdModal({ prod, categories, onSave, onClose }) {
+  const blank = { nom:"", prix:"", prix_promo:"", emoji:"✨", description:"", badge:"", actif:true, featured:false, img:"", categorie_id:categories[0]?.id||"" };
+  const [f, setF] = useState(prod ? {...prod} : blank);
+  const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [preview, setPreview] = useState(prod?.img||"");
+  const fileRef = useRef();
+
+  async function handleFile(e) {
+    const file = e.target.files[0]; if (!file) return;
+    setUploading(true);
+    try {
+      const url = await uploadImage(file);
+      setF(v => ({...v, img: url}));
+      setPreview(url);
+    } catch(err) { alert("Erreur upload : " + err.message); }
+    setUploading(false);
+  }
+
+  async function handleSave() {
+    if (!f.nom || !f.prix) { alert("Nom et prix obligatoires"); return; }
+    setSaving(true);
+    await onSave(f);
+    setSaving(false);
+  }
+
+  const inp = (lbl, key, type="text", placeholder="") => (
+    <div style={{marginBottom:13}}>
+      <label style={{fontSize:12,color:"#6b7875",fontWeight:600,display:"block",marginBottom:4}}>{lbl}</label>
+      <input type={type} value={f[key]||""} placeholder={placeholder}
+        onChange={e=>setF(v=>({...v,[key]:e.target.value}))}
+        style={{width:"100%",border:"1.5px solid #e0e8e4",borderRadius:9,padding:"10px 12px",fontSize:14,outline:"none",fontFamily:"inherit"}}/>
+    </div>
+  );
+
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+      <div style={{background:"#fff",borderRadius:20,padding:24,width:"100%",maxWidth:500,maxHeight:"92vh",overflowY:"auto",boxShadow:"0 20px 60px rgba(0,0,0,.2)"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+          <h3 style={{fontWeight:800,fontSize:18}}>{prod?"✏️ Modifier le produit":"➕ Nouveau produit"}</h3>
+          <button onClick={onClose} style={{border:"none",background:"#f0f4f2",borderRadius:20,width:32,height:32,fontSize:18,display:"grid",placeItems:"center"}}>×</button>
+        </div>
+
+        {/* Image upload */}
+        <div style={{marginBottom:16}}>
+          <label style={{fontSize:12,color:"#6b7875",fontWeight:600,display:"block",marginBottom:6}}>Image produit</label>
+          <div style={{display:"flex",gap:12,alignItems:"center"}}>
+            <div style={{width:72,height:72,borderRadius:10,background:"#f0f4f2",overflow:"hidden",flexShrink:0,border:"2px dashed #c8d8d2",display:"grid",placeItems:"center"}}>
+              {preview ? <img src={preview} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>e.target.style.display="none"}/> : <span style={{fontSize:24}}>📷</span>}
+            </div>
+            <div style={{flex:1}}>
+              <button onClick={()=>fileRef.current.click()} disabled={uploading}
+                style={{background:"#e7f7ed",color:"#1a7a56",border:"1.5px solid #b2dfce",padding:"9px 16px",borderRadius:9,fontWeight:700,fontSize:13,width:"100%",marginBottom:6}}>
+                {uploading ? "⟳ Upload en cours…" : "📁 Parcourir une image"}
+              </button>
+              <input ref={fileRef} type="file" accept="image/*" onChange={handleFile} style={{display:"none"}}/>
+              <input value={f.img||""} onChange={e=>{setF(v=>({...v,img:e.target.value}));setPreview(e.target.value);}}
+                placeholder="ou coller une URL" style={{width:"100%",border:"1.5px solid #e0e8e4",borderRadius:9,padding:"8px 12px",fontSize:12,outline:"none"}}/>
+            </div>
+          </div>
+        </div>
+
+        {inp("Nom du produit","nom","text","ex: Collagen Glow Boost")}
+        <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:10,marginBottom:13}}>
+          <div>
+            <label style={{fontSize:12,color:"#6b7875",fontWeight:600,display:"block",marginBottom:4}}>Prix (TND) *</label>
+            <input type="number" step="0.001" value={f.prix||""} onChange={e=>setF(v=>({...v,prix:e.target.value}))}
+              style={{width:"100%",border:"1.5px solid #e0e8e4",borderRadius:9,padding:"10px 12px",fontSize:14,outline:"none"}}/>
+          </div>
+          <div>
+            <label style={{fontSize:12,color:"#6b7875",fontWeight:600,display:"block",marginBottom:4}}>Prix barré (TND)</label>
+            <input type="number" step="0.001" value={f.prix_promo||""} onChange={e=>setF(v=>({...v,prix_promo:e.target.value}))}
+              style={{width:"100%",border:"1.5px solid #e0e8e4",borderRadius:9,padding:"10px 12px",fontSize:14,outline:"none"}}/>
+          </div>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"80px 1fr",gap:10,marginBottom:13}}>
+          <div>
+            <label style={{fontSize:12,color:"#6b7875",fontWeight:600,display:"block",marginBottom:4}}>Emoji</label>
+            <input value={f.emoji||""} onChange={e=>setF(v=>({...v,emoji:e.target.value}))}
+              style={{width:"100%",border:"1.5px solid #e0e8e4",borderRadius:9,padding:"10px 12px",fontSize:20,outline:"none",textAlign:"center"}}/>
+          </div>
+          <div>
+            <label style={{fontSize:12,color:"#6b7875",fontWeight:600,display:"block",marginBottom:4}}>Badge (ex: -15%, Best-seller)</label>
+            <input value={f.badge||""} onChange={e=>setF(v=>({...v,badge:e.target.value}))}
+              style={{width:"100%",border:"1.5px solid #e0e8e4",borderRadius:9,padding:"10px 12px",fontSize:14,outline:"none"}}/>
+          </div>
+        </div>
+        {inp("Description","description","text","Bénéfices principaux du produit")}
+
+        <div style={{marginBottom:13}}>
+          <label style={{fontSize:12,color:"#6b7875",fontWeight:600,display:"block",marginBottom:4}}>Catégorie</label>
+          <select value={f.categorie_id||""} onChange={e=>setF(v=>({...v,categorie_id:e.target.value}))}
+            style={{width:"100%",border:"1.5px solid #e0e8e4",borderRadius:9,padding:"10px 12px",fontSize:14,background:"#fff"}}>
+            {categories.map(c=><option key={c.id} value={c.id}>{c.emoji} {c.nom}</option>)}
+          </select>
+        </div>
+
+        {/* Cases à cocher */}
+        <div style={{display:"flex",gap:20,marginBottom:20,background:"#f8faf9",borderRadius:10,padding:"12px 16px"}}>
+          <label style={{display:"flex",alignItems:"center",gap:8,fontSize:14,fontWeight:600,cursor:"pointer"}}>
+            <input type="checkbox" checked={!!f.actif} onChange={e=>setF(v=>({...v,actif:e.target.checked}))}
+              style={{width:18,height:18,accentColor:"#1a7a56"}}/>
+            ✅ Actif
+          </label>
+          <label style={{display:"flex",alignItems:"center",gap:8,fontSize:14,fontWeight:600,cursor:"pointer"}}>
+            <input type="checkbox" checked={!!f.featured} onChange={e=>setF(v=>({...v,featured:e.target.checked}))}
+              style={{width:18,height:18,accentColor:"#f0a93c"}}/>
+            ⭐ Featured
+          </label>
+        </div>
+
+        <div style={{display:"flex",gap:8}}>
+          <button onClick={handleSave} disabled={saving}
+            style={{flex:1,background:"#1a7a56",color:"#fff",border:"none",padding:"13px",borderRadius:11,fontWeight:700,fontSize:15}}>
+            {saving?"⟳ Enregistrement…":"💾 Enregistrer"}
+          </button>
+          <button onClick={onClose} style={{flex:1,background:"#f0f4f2",border:"none",padding:"13px",borderRadius:11,fontWeight:700,fontSize:15}}>Annuler</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function CatModal({ cat, onSave, onClose }) {
+  const [f, setF] = useState(cat || { nom:"", emoji:"🌿", ordre:0 });
+  const [saving, setSaving] = useState(false);
+  async function handleSave() {
+    if (!f.nom) { alert("Nom obligatoire"); return; }
+    setSaving(true); await onSave(f); setSaving(false);
+  }
+  return (
+    <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.55)",zIndex:200,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+      <div style={{background:"#fff",borderRadius:20,padding:24,width:"100%",maxWidth:380,boxShadow:"0 20px 60px rgba(0,0,0,.2)"}}>
+        <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20}}>
+          <h3 style={{fontWeight:800,fontSize:18}}>{cat?"✏️ Modifier catégorie":"➕ Nouvelle catégorie"}</h3>
+          <button onClick={onClose} style={{border:"none",background:"#f0f4f2",borderRadius:20,width:32,height:32,fontSize:18,display:"grid",placeItems:"center"}}>×</button>
+        </div>
+        <div style={{display:"grid",gridTemplateColumns:"72px 1fr",gap:10,marginBottom:14}}>
+          <div>
+            <label style={{fontSize:12,color:"#6b7875",fontWeight:600,display:"block",marginBottom:4}}>Emoji</label>
+            <input value={f.emoji} onChange={e=>setF(v=>({...v,emoji:e.target.value}))}
+              style={{width:"100%",border:"1.5px solid #e0e8e4",borderRadius:9,padding:"10px 8px",fontSize:22,textAlign:"center",outline:"none"}}/>
+          </div>
+          <div>
+            <label style={{fontSize:12,color:"#6b7875",fontWeight:600,display:"block",marginBottom:4}}>Nom de la catégorie</label>
+            <input value={f.nom} onChange={e=>setF(v=>({...v,nom:e.target.value}))} placeholder="ex: Compléments"
+              style={{width:"100%",border:"1.5px solid #e0e8e4",borderRadius:9,padding:"10px 12px",fontSize:14,outline:"none"}}/>
+          </div>
+        </div>
+        <div style={{marginBottom:18}}>
+          <label style={{fontSize:12,color:"#6b7875",fontWeight:600,display:"block",marginBottom:4}}>Ordre d'affichage</label>
+          <input type="number" value={f.ordre} onChange={e=>setF(v=>({...v,ordre:parseInt(e.target.value)||0}))}
+            style={{width:"100%",border:"1.5px solid #e0e8e4",borderRadius:9,padding:"10px 12px",fontSize:14,outline:"none"}}/>
+        </div>
+        <div style={{display:"flex",gap:8}}>
+          <button onClick={handleSave} disabled={saving}
+            style={{flex:1,background:"#1a7a56",color:"#fff",border:"none",padding:"12px",borderRadius:10,fontWeight:700,fontSize:14}}>
+            {saving?"⟳ …":"💾 Enregistrer"}
+          </button>
+          <button onClick={onClose} style={{flex:1,background:"#f0f4f2",border:"none",padding:"12px",borderRadius:10,fontWeight:700,fontSize:14}}>Annuler</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Pagination({ page, total, pageSize, onChange }) {
+  const pages = Math.ceil(total / pageSize);
+  if (pages <= 1) return null;
+  return (
+    <div style={{display:"flex",justifyContent:"center",alignItems:"center",gap:6,marginTop:18,flexWrap:"wrap"}}>
+      <button onClick={()=>onChange(page-1)} disabled={page===1}
+        style={{border:"1.5px solid #e0e8e4",background:page===1?"#f8faf9":"#fff",borderRadius:8,padding:"6px 12px",fontWeight:700,fontSize:13,color:page===1?"#aaa":"#1a7a56"}}>‹</button>
+      {Array.from({length:pages},(_,i)=>i+1).map(p=>(
+        <button key={p} onClick={()=>onChange(p)}
+          style={{border:"1.5px solid",borderColor:p===page?"#1a7a56":"#e0e8e4",background:p===page?"#1a7a56":"#fff",borderRadius:8,padding:"6px 12px",fontWeight:700,fontSize:13,color:p===page?"#fff":"#3a4742",minWidth:36}}>
+          {p}
+        </button>
+      ))}
+      <button onClick={()=>onChange(page+1)} disabled={page===pages}
+        style={{border:"1.5px solid #e0e8e4",background:page===pages?"#f8faf9":"#fff",borderRadius:8,padding:"6px 12px",fontWeight:700,fontSize:13,color:page===pages?"#aaa":"#1a7a56"}}>›</button>
+      <span style={{fontSize:12,color:"#9aa5a0",marginLeft:4}}>{total} produit{total>1?"s":""}</span>
+    </div>
+  );
+}
+
 function Dashboard(){
   const [tab,setTab]=useState("commandes");
   const [commandes,setCommandes]=useState([]);
@@ -355,10 +555,13 @@ function Dashboard(){
   const [categories,setCategories]=useState([]);
   const [loading,setLoading]=useState(true);
   const [mobile,setMobile]=useState(window.innerWidth<768);
-  // Modals
   const [editProd,setEditProd]=useState(null);
-  const [editCmd,setEditCmd]=useState(null);
   const [showAddProd,setShowAddProd]=useState(false);
+  const [editCat,setEditCat]=useState(null);
+  const [showAddCat,setShowAddCat]=useState(false);
+  const [prodPage,setProdPage]=useState(1);
+  const [filterFeatured,setFilterFeatured]=useState(false);
+  const [filterCat,setFilterCat]=useState("all");
 
   useEffect(()=>{const fn=()=>setMobile(window.innerWidth<768);window.addEventListener("resize",fn);return()=>window.removeEventListener("resize",fn);},[]);
 
@@ -368,7 +571,7 @@ function Dashboard(){
       const [cmd,pros,prod,cat]=await Promise.all([
         sb("commandes",{filter:"&order=created_at.desc"}),
         sb("prospects",{filter:"&order=created_at.desc"}),
-        sb("produits",{select:"*,categories(nom)",filter:"&order=created_at.asc"}),
+        sb("produits",{select:"*,categories(nom,emoji)",filter:"&order=created_at.asc"}),
         sb("categories",{filter:"&order=ordre.asc"}),
       ]);
       setCommandes(cmd);setProspects(pros);setProduits(prod);setCategories(cat);
@@ -378,15 +581,26 @@ function Dashboard(){
 
   useEffect(()=>{load();},[load]);
 
-  // Stats
   const today=new Date().toISOString().split("T")[0];
   const cmdAuj=commandes.filter(c=>c.created_at?.startsWith(today)).length;
-  const prosAuj=prospects.filter(p=>p.created_at?.startsWith(today)).length;
-  const ca=commandes.filter(c=>c.statut!=="Nouveau"||true).reduce((s,c)=>s+parseFloat(c.total||0),0);
+  const ca=commandes.reduce((s,c)=>s+parseFloat(c.total||0),0);
 
   async function updateStatut(table,id,statut){
     await sb(table,{method:"PATCH",filter:`&id=eq.${id}`,body:{statut}});
     load();
+  }
+
+  async function saveProd(data){
+    const body = {
+      nom:data.nom, prix:parseFloat(data.prix), emoji:data.emoji,
+      description:data.description, badge:data.badge||null,
+      actif:data.actif, featured:data.featured,
+      img:data.img||null, categorie_id:data.categorie_id||null,
+      prix_promo:data.prix_promo?parseFloat(data.prix_promo):null,
+    };
+    if(data.id){ await sb("produits",{method:"PATCH",filter:`&id=eq.${data.id}`,body:{...body,updated_at:new Date().toISOString()}}); }
+    else { await sb("produits",{method:"POST",body}); }
+    setEditProd(null);setShowAddProd(false);load();
   }
 
   async function deleteProd(id){
@@ -395,51 +609,34 @@ function Dashboard(){
     load();
   }
 
-  async function saveProd(data){
-    if(data.id){
-      await sb("produits",{method:"PATCH",filter:`&id=eq.${data.id}`,body:{...data,updated_at:new Date().toISOString()}});
-    } else {
-      await sb("produits",{method:"POST",body:data});
-    }
-    setEditProd(null);setShowAddProd(false);load();
+  async function saveCat(data){
+    const body={nom:data.nom,emoji:data.emoji,ordre:parseInt(data.ordre)||0};
+    if(data.id){ await sb("categories",{method:"PATCH",filter:`&id=eq.${data.id}`,body}); }
+    else { await sb("categories",{method:"POST",body}); }
+    setEditCat(null);setShowAddCat(false);load();
   }
 
-  function ProdModal({prod,onClose}){
-    const [f,setF]=useState(prod||{nom:"",prix:"",emoji:"✨",description:"",badge:"",actif:true,categorie_id:categories[0]?.id||""});
-    return(
-      <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.5)",zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
-        <div style={{background:"#fff",borderRadius:20,padding:24,width:"100%",maxWidth:480,maxHeight:"90vh",overflowY:"auto"}}>
-          <h3 style={{fontWeight:800,marginBottom:20,fontSize:18}}>{prod?"✏️ Modifier":"➕ Nouveau produit"}</h3>
-          {[["Nom du produit","nom","text"],["Prix (TND)","prix","number"],["Emoji","emoji","text"],["Badge (optionnel)","badge","text"],["Description","description","text"]].map(([lbl,key,type])=>(
-            <div key={key} style={{marginBottom:12}}>
-              <label style={{fontSize:12,color:"#6b7875",fontWeight:600}}>{lbl}</label>
-              <input type={type} value={f[key]||""} onChange={e=>setF(v=>({...v,[key]:e.target.value}))} style={{width:"100%",border:"1.5px solid #ddd",borderRadius:8,padding:"9px 12px",fontSize:14,marginTop:4,outline:"none"}}/>
-            </div>
-          ))}
-          <div style={{marginBottom:12}}>
-            <label style={{fontSize:12,color:"#6b7875",fontWeight:600}}>Catégorie</label>
-            <select value={f.categorie_id||""} onChange={e=>setF(v=>({...v,categorie_id:e.target.value}))} style={{width:"100%",border:"1.5px solid #ddd",borderRadius:8,padding:"9px 12px",fontSize:14,marginTop:4}}>
-              {categories.map(c=><option key={c.id} value={c.id}>{c.nom}</option>)}
-            </select>
-          </div>
-          <div style={{marginBottom:16}}>
-            <label style={{fontSize:12,color:"#6b7875",fontWeight:600}}>Actif</label>
-            <input type="checkbox" checked={f.actif} onChange={e=>setF(v=>({...v,actif:e.target.checked}))} style={{marginLeft:8}}/>
-          </div>
-          <div style={{display:"flex",gap:8}}>
-            <button onClick={()=>saveProd(f)} style={{flex:1,background:"#1a7a56",color:"#fff",border:"none",padding:12,borderRadius:10,fontWeight:700,fontSize:14}}>💾 Enregistrer</button>
-            <button onClick={onClose} style={{flex:1,background:"#f0f4f2",border:"none",padding:12,borderRadius:10,fontWeight:700,fontSize:14}}>Annuler</button>
-          </div>
-        </div>
-      </div>
-    );
+  async function deleteCat(id){
+    if(!confirm("Supprimer cette catégorie ? Les produits liés ne seront pas supprimés.")) return;
+    await sb("categories",{method:"DELETE",filter:`&id=eq.${id}`});
+    load();
   }
+
+  // Produits filtrés + paginés
+  const prodFiltres = produits.filter(p=>{
+    if(filterFeatured && !p.featured) return false;
+    if(filterCat!=="all" && p.categorie_id!==filterCat) return false;
+    return true;
+  });
+  const prodPage_ = prodFiltres.slice((prodPage-1)*PAGE_SIZE, prodPage*PAGE_SIZE);
 
   if(loading) return <div style={{textAlign:"center",padding:60,fontSize:18,color:"#1a7a56"}}><Spinner/> Chargement…</div>;
 
   return(
     <div>
-      {(editProd||showAddProd)&&<ProdModal prod={editProd} onClose={()=>{setEditProd(null);setShowAddProd(false);}}/>}
+      {/* Modals */}
+      {(showAddProd||editProd)&&<ProdModal prod={editProd} categories={categories} onSave={saveProd} onClose={()=>{setEditProd(null);setShowAddProd(false);}}/>}
+      {(showAddCat||editCat)&&<CatModal cat={editCat} onSave={saveCat} onClose={()=>{setEditCat(null);setShowAddCat(false);}}/>}
 
       {/* Stats */}
       <div style={{display:"grid",gridTemplateColumns:mobile?"1fr 1fr":"repeat(4,1fr)",gap:12,marginBottom:20}}>
@@ -455,21 +652,20 @@ function Dashboard(){
       {/* Tabs */}
       <div style={{background:"#fff",borderRadius:16,padding:mobile?14:22,boxShadow:"0 2px 10px rgba(0,0,0,.05)"}}>
         <div style={{display:"flex",gap:8,marginBottom:18,flexWrap:"wrap"}}>
-          {[["commandes","🛒 Commandes"],["prospects","👥 Prospects"],["produits","📦 Produits"]].map(([t,l])=>(
-            <button key={t} onClick={()=>setTab(t)} style={{border:"none",background:tab===t?"#1a7a56":"#eef2f0",color:tab===t?"#fff":"#3a4742",padding:"9px 16px",borderRadius:10,fontWeight:700,fontSize:mobile?12:13.5,flex:mobile?"1":""}}>
+          {[["commandes","🛒 Commandes"],["prospects","👥 Prospects"],["produits","📦 Produits"],["categories","🗂️ Catégories"]].map(([t,l])=>(
+            <button key={t} onClick={()=>setTab(t)} style={{border:"none",background:tab===t?"#1a7a56":"#eef2f0",color:tab===t?"#fff":"#3a4742",padding:"9px 14px",borderRadius:10,fontWeight:700,fontSize:mobile?11:13,flex:mobile?"1":""}}>
               {l}
             </button>
           ))}
-          <button onClick={load} style={{border:"none",background:"#f0f4f2",padding:"9px 14px",borderRadius:10,fontWeight:600,fontSize:13,marginLeft:"auto"}}>🔄</button>
+          <button onClick={load} style={{border:"none",background:"#f0f4f2",padding:"9px 12px",borderRadius:10,fontWeight:600,fontSize:13,marginLeft:"auto"}} title="Actualiser">🔄</button>
         </div>
 
-        {/* COMMANDES */}
+        {/* ── COMMANDES ── */}
         {tab==="commandes"&&(mobile?(
           commandes.map((c,i)=>(
             <div key={i} style={{background:"#f8faf9",borderRadius:12,padding:14,marginBottom:10,border:"1px solid #eef2f0"}}>
               <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
-                <span style={{fontWeight:800,color:"#1a7a56"}}>{c.numero}</span>
-                <Badge s={c.statut}/>
+                <span style={{fontWeight:800,color:"#1a7a56"}}>{c.numero}</span><Badge s={c.statut}/>
               </div>
               <div style={{fontWeight:600,marginBottom:4}}>{c.client_nom}</div>
               <div style={{fontSize:12,color:"#6b7875",marginBottom:8}}>📍 {c.client_ville} · 📞 {c.client_telephone}</div>
@@ -504,13 +700,12 @@ function Dashboard(){
           </div>
         ))}
 
-        {/* PROSPECTS */}
+        {/* ── PROSPECTS ── */}
         {tab==="prospects"&&(mobile?(
           prospects.map((p,i)=>(
             <div key={i} style={{background:"#f8faf9",borderRadius:12,padding:14,marginBottom:10,border:"1px solid #eef2f0"}}>
               <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
-                <span style={{fontWeight:700}}>{p.nom}</span>
-                <Badge s={p.statut}/>
+                <span style={{fontWeight:700}}>{p.nom}</span><Badge s={p.statut}/>
               </div>
               <div style={{fontSize:12,color:"#6b7875",marginBottom:4}}>📞 {p.telephone}</div>
               <div style={{fontSize:13,marginBottom:8}}>🎯 {p.objectif} → {p.produit_recommande}</div>
@@ -541,27 +736,74 @@ function Dashboard(){
           </div>
         ))}
 
-        {/* PRODUITS */}
+        {/* ── PRODUITS ── */}
         {tab==="produits"&&(
           <div>
-            <button onClick={()=>setShowAddProd(true)} style={{background:"#1a7a56",color:"#fff",border:"none",padding:"10px 20px",borderRadius:10,fontWeight:700,fontSize:14,marginBottom:16}}>+ Ajouter un produit</button>
-            <div style={{display:"grid",gridTemplateColumns:mobile?"1fr":"repeat(auto-fill,minmax(300px,1fr))",gap:12}}>
-              {produits.map(p=>(
-                <div key={p.id} style={{background:"#f8faf9",borderRadius:12,padding:14,border:"1px solid #eef2f0",opacity:p.actif?1:0.5}}>
-                  <div style={{display:"flex",gap:10,alignItems:"flex-start"}}>
-                    <img src={p.img} alt={p.nom} style={{width:56,height:56,borderRadius:8,objectFit:"cover",flexShrink:0,background:"#eef2f0"}} onError={e=>e.target.style.display="none"}/>
+            {/* Toolbar */}
+            <div style={{display:"flex",gap:10,marginBottom:16,flexWrap:"wrap",alignItems:"center"}}>
+              <button onClick={()=>{setShowAddProd(true);setEditProd(null);}} style={{background:"#1a7a56",color:"#fff",border:"none",padding:"10px 18px",borderRadius:10,fontWeight:700,fontSize:14}}>+ Ajouter</button>
+              <select value={filterCat} onChange={e=>{setFilterCat(e.target.value);setProdPage(1);}} style={{border:"1.5px solid #e0e8e4",borderRadius:9,padding:"9px 12px",fontSize:13,background:"#fff"}}>
+                <option value="all">Toutes catégories</option>
+                {categories.map(c=><option key={c.id} value={c.id}>{c.emoji} {c.nom}</option>)}
+              </select>
+              <label style={{display:"flex",alignItems:"center",gap:6,fontSize:13,fontWeight:600,cursor:"pointer",background:"#fff8e1",padding:"8px 14px",borderRadius:9,border:"1.5px solid #f0d070"}}>
+                <input type="checkbox" checked={filterFeatured} onChange={e=>{setFilterFeatured(e.target.checked);setProdPage(1);}} style={{accentColor:"#f0a93c",width:16,height:16}}/>
+                ⭐ Featured seulement
+              </label>
+              <span style={{fontSize:12,color:"#9aa5a0",marginLeft:"auto"}}>{prodFiltres.length} produit{prodFiltres.length>1?"s":""}</span>
+            </div>
+
+            {/* Grille produits */}
+            <div style={{display:"grid",gridTemplateColumns:mobile?"1fr":"repeat(auto-fill,minmax(280px,1fr))",gap:14}}>
+              {prodPage_.map(p=>(
+                <div key={p.id} style={{background:p.featured?"#fffdf0":"#f8faf9",borderRadius:13,padding:14,border:`1.5px solid ${p.featured?"#f0d070":"#eef2f0"}`,opacity:p.actif?1:0.55,position:"relative"}}>
+                  {p.featured&&<span style={{position:"absolute",top:10,right:10,fontSize:16}} title="Featured">⭐</span>}
+                  {!p.actif&&<span style={{position:"absolute",top:10,left:10,background:"#fee",color:"#c00",fontSize:10,fontWeight:700,padding:"2px 6px",borderRadius:6}}>Inactif</span>}
+                  <div style={{display:"flex",gap:10,alignItems:"flex-start",marginBottom:10}}>
+                    <div style={{width:60,height:60,borderRadius:10,overflow:"hidden",flexShrink:0,background:"#eef2f0",display:"grid",placeItems:"center",fontSize:28}}>
+                      {p.img?<img src={p.img} alt={p.nom} style={{width:"100%",height:"100%",objectFit:"cover"}} onError={e=>{e.target.style.display="none";e.target.parentNode.innerText=p.emoji||"📦";}}/>:p.emoji||"📦"}
+                    </div>
                     <div style={{flex:1,minWidth:0}}>
-                      <div style={{fontWeight:700,fontSize:14,marginBottom:2}}>{p.emoji} {p.nom}</div>
-                      <div style={{fontSize:12,color:"#6b7875",marginBottom:4}}>{p.categories?.nom}</div>
-                      <div style={{fontWeight:800,color:"#1a7a56",fontSize:15}}>{parseFloat(p.prix).toFixed(3)} TND</div>
+                      <div style={{fontWeight:700,fontSize:14,lineHeight:1.3,marginBottom:2}}>{p.nom}</div>
+                      <div style={{fontSize:11,color:"#6b7875",marginBottom:4}}>{p.categories?.emoji} {p.categories?.nom}</div>
+                      <div style={{display:"flex",alignItems:"center",gap:6}}>
+                        <span style={{fontWeight:800,color:"#1a7a56",fontSize:15}}>{parseFloat(p.prix).toFixed(3)} TND</span>
+                        {p.prix_promo&&<span style={{fontSize:11,color:"#999",textDecoration:"line-through"}}>{parseFloat(p.prix_promo).toFixed(3)}</span>}
+                        {p.badge&&<span style={{background:"#fff0f5",color:"#c2186a",fontSize:10,fontWeight:700,padding:"1px 5px",borderRadius:6}}>{p.badge}</span>}
+                      </div>
                     </div>
                   </div>
-                  <div style={{display:"flex",gap:6,marginTop:10}}>
-                    <button onClick={()=>setEditProd(p)} style={{flex:1,background:"#e8f0ff",color:"#2563eb",border:"none",padding:"7px",borderRadius:8,fontWeight:700,fontSize:13}}>✏️ Modifier</button>
-                    <button onClick={()=>deleteProd(p.id)} style={{flex:1,background:"#ffe8e8",color:"#dc2626",border:"none",padding:"7px",borderRadius:8,fontWeight:700,fontSize:13}}>🗑️ Supprimer</button>
+                  <div style={{display:"flex",gap:6}}>
+                    <button onClick={()=>{setEditProd(p);setShowAddProd(false);}} style={{flex:1,background:"#e8f0ff",color:"#2563eb",border:"none",padding:"8px",borderRadius:8,fontWeight:700,fontSize:13}}>✏️ Modifier</button>
+                    <button onClick={()=>deleteProd(p.id)} style={{flex:1,background:"#ffe8e8",color:"#dc2626",border:"none",padding:"8px",borderRadius:8,fontWeight:700,fontSize:13}}>🗑️ Supprimer</button>
                   </div>
                 </div>
               ))}
+            </div>
+
+            <Pagination page={prodPage} total={prodFiltres.length} pageSize={PAGE_SIZE} onChange={p=>{setProdPage(p);window.scrollTo(0,0);}}/>
+          </div>
+        )}
+
+        {/* ── CATÉGORIES ── */}
+        {tab==="categories"&&(
+          <div>
+            <button onClick={()=>{setShowAddCat(true);setEditCat(null);}} style={{background:"#1a7a56",color:"#fff",border:"none",padding:"10px 18px",borderRadius:10,fontWeight:700,fontSize:14,marginBottom:16}}>+ Ajouter une catégorie</button>
+            <div style={{display:"grid",gridTemplateColumns:mobile?"1fr":"repeat(auto-fill,minmax(240px,1fr))",gap:12}}>
+              {categories.map(c=>{
+                const count=produits.filter(p=>p.categorie_id===c.id).length;
+                return(
+                  <div key={c.id} style={{background:"#f8faf9",borderRadius:13,padding:18,border:"1.5px solid #eef2f0"}}>
+                    <div style={{fontSize:36,marginBottom:8}}>{c.emoji}</div>
+                    <div style={{fontWeight:700,fontSize:16,marginBottom:2}}>{c.nom}</div>
+                    <div style={{fontSize:12,color:"#6b7875",marginBottom:12}}>{count} produit{count>1?"s":""} · ordre #{c.ordre}</div>
+                    <div style={{display:"flex",gap:6}}>
+                      <button onClick={()=>{setEditCat(c);setShowAddCat(false);}} style={{flex:1,background:"#e8f0ff",color:"#2563eb",border:"none",padding:"8px",borderRadius:8,fontWeight:700,fontSize:13}}>✏️ Modifier</button>
+                      <button onClick={()=>deleteCat(c.id)} style={{flex:1,background:"#ffe8e8",color:"#dc2626",border:"none",padding:"8px",borderRadius:8,fontWeight:700,fontSize:13}}>🗑️ Supprimer</button>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         )}

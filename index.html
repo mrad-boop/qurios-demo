@@ -847,47 +847,119 @@ function Dashboard(){
         {/* ── CAMPAGNES ── */}
         {tab==="campagnes"&&(
           <div>
-            {/* Hero coming soon */}
-            <div style={{background:"linear-gradient(135deg,#0d1f1a,#1a3d2e)",borderRadius:18,padding:mobile?"28px 20px":"48px 40px",textAlign:"center",marginBottom:20,position:"relative",overflow:"hidden"}}>
-              <div style={{position:"absolute",top:-40,right:-40,width:200,height:200,background:"rgba(37,211,102,.08)",borderRadius:"50%"}}/>
-              <div style={{position:"absolute",bottom:-60,left:-30,width:160,height:160,background:"rgba(37,211,102,.06)",borderRadius:"50%"}}/>
-              <div style={{fontSize:56,marginBottom:16}}>📣</div>
-              <div style={{display:"inline-block",background:"rgba(37,211,102,.15)",border:"1px solid rgba(37,211,102,.3)",color:"#25d366",padding:"5px 16px",borderRadius:20,fontSize:12,fontWeight:700,letterSpacing:2,marginBottom:16}}>COMING SOON</div>
-              <h2 style={{color:"#fff",fontWeight:800,fontSize:mobile?22:32,marginBottom:12,fontFamily:"'Plus Jakarta Sans',sans-serif",lineHeight:1.2}}>Campagnes WhatsApp<br/>automatisées</h2>
-              <p style={{color:"rgba(255,255,255,.65)",fontSize:15,lineHeight:1.7,maxWidth:520,margin:"0 auto 32px"}}>
-                Envoyez des campagnes ciblées à vos prospects directement sur WhatsApp — relances, promotions, nouveaux produits — avec suivi des ouvertures et des réponses en temps réel.
-              </p>
-              <div style={{display:"grid",gridTemplateColumns:mobile?"1fr":"repeat(3,1fr)",gap:14,maxWidth:640,margin:"0 auto 32px",textAlign:"left"}}>
-                {[
-                  ["🎯","Ciblage avancé","Par objectif, statut, produit acheté ou zone géographique"],
-                  ["⚡","Envoi instantané","Campagne déclenchée en 1 clic vers vos listes segmentées"],
-                  ["📊","Analytics live","Taux d'ouverture, réponses, conversions — tout en temps réel"],
-                  ["🔄","Scénarios auto","Relances automatiques selon le comportement du prospect"],
-                  ["🛒","Panier abandonné","Rappel automatique aux clients qui n'ont pas finalisé"],
-                  ["🎁","Promos exclusives","Codes promo personnalisés avec date d'expiration"],
-                ].map(([ic,t,d])=>(
-                  <div key={t} style={{background:"rgba(255,255,255,.06)",borderRadius:12,padding:"14px 16px",border:"1px solid rgba(255,255,255,.08)"}}>
-                    <div style={{fontSize:24,marginBottom:6}}>{ic}</div>
-                    <div style={{color:"#fff",fontWeight:700,fontSize:13,marginBottom:4}}>{t}</div>
-                    <div style={{color:"rgba(255,255,255,.5)",fontSize:12,lineHeight:1.5}}>{d}</div>
-                  </div>
-                ))}
-              </div>
-              <button style={{background:"linear-gradient(135deg,#25d366,#1a9e4a)",color:"#fff",border:"none",padding:"14px 32px",borderRadius:12,fontWeight:800,fontSize:15,cursor:"default",boxShadow:"0 8px 24px rgba(37,211,102,.3)"}}>
-                🔔 Être notifié au lancement
-              </button>
-              <div style={{color:"rgba(255,255,255,.35)",fontSize:12,marginTop:12}}>Disponible prochainement · Intégration WhatsApp Business API</div>
+            {/* Header */}
+            <div style={{textAlign:"center",marginBottom:32}}>
+              <div style={{display:"inline-block",background:"#e7f7ed",color:"#0f7a4f",padding:"5px 16px",borderRadius:20,fontSize:12,fontWeight:700,letterSpacing:1,marginBottom:12}}>OPTIONS DISPONIBLES</div>
+              <h2 style={{fontWeight:800,fontSize:mobile?22:30,fontFamily:"'Plus Jakarta Sans',sans-serif",marginBottom:8}}>Boostez votre assistant Qurios</h2>
+              <p style={{color:"#5a6661",fontSize:15,maxWidth:500,margin:"0 auto"}}>Deux modules complémentaires pour maximiser vos ventes et votre réputation en ligne.</p>
             </div>
 
-            {/* Preview stats */}
-            <div style={{display:"grid",gridTemplateColumns:mobile?"1fr 1fr":"repeat(4,1fr)",gap:12}}>
-              {[["248","Prospects à cibler","#25d366"],["96","Commandes à relancer","#1a7a56"],["~68%","Taux d'ouverture WA","#f0a93c"],["3×","ROI estimé campagne","#7c6cf0"]].map(([v,l,c])=>(
-                <div key={l} style={{background:"#fff",borderRadius:14,padding:16,boxShadow:"0 2px 10px rgba(0,0,0,.05)",textAlign:"center",border:`2px solid ${c}22`}}>
-                  <div style={{fontSize:26,fontWeight:800,color:c,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>{v}</div>
-                  <div style={{fontSize:11,color:"#6b7875",marginTop:4,fontWeight:500}}>{l}</div>
+            {/* Cards options */}
+            <div style={{display:"grid",gridTemplateColumns:mobile?"1fr":"1fr 1fr",gap:20,marginBottom:32}}>
+
+              {/* ── Option 1 : Campagnes WhatsApp ── */}
+              <div style={{background:"linear-gradient(160deg,#0d1f1a,#1a3d2e)",borderRadius:20,padding:mobile?"24px 20px":"32px 28px",position:"relative",overflow:"hidden",border:"1px solid rgba(37,211,102,.2)"}}>
+                <div style={{position:"absolute",top:-50,right:-50,width:180,height:180,background:"rgba(37,211,102,.07)",borderRadius:"50%"}}/>
+                <div style={{position:"absolute",bottom:-40,left:-30,width:140,height:140,background:"rgba(37,211,102,.05)",borderRadius:"50%"}}/>
+                <div style={{position:"relative"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16}}>
+                    <div style={{fontSize:44}}>📣</div>
+                    <div style={{textAlign:"right"}}>
+                      <div style={{display:"inline-block",background:"rgba(37,211,102,.15)",border:"1px solid rgba(37,211,102,.3)",color:"#25d366",padding:"4px 10px",borderRadius:20,fontSize:11,fontWeight:700,letterSpacing:1.5,marginBottom:6,display:"block"}}>COMING SOON</div>
+                      <div style={{color:"rgba(255,255,255,.4)",fontSize:11}}>WhatsApp Business API</div>
+                    </div>
+                  </div>
+                  <div style={{color:"#fff",fontWeight:800,fontSize:mobile?18:22,marginBottom:6,fontFamily:"'Plus Jakarta Sans',sans-serif",lineHeight:1.2}}>Campagnes WhatsApp<br/>automatisées</div>
+                  <div style={{color:"rgba(255,255,255,.6)",fontSize:13,lineHeight:1.6,marginBottom:20}}>
+                    Envoyez des campagnes ciblées à vos prospects — relances, promos, nouveaux produits — avec suivi en temps réel.
+                  </div>
+                  <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:24}}>
+                    {[
+                      ["🎯","Ciblage par objectif, statut, ville"],
+                      ["⚡","Envoi en 1 clic vers vos listes"],
+                      ["📊","Analytics : ouvertures & conversions"],
+                      ["🔄","Scénarios de relance automatiques"],
+                      ["🛒","Rappel panier abandonné"],
+                      ["🎁","Codes promo personnalisés"],
+                    ].map(([ic,t])=>(
+                      <div key={t} style={{display:"flex",alignItems:"center",gap:8,color:"rgba(255,255,255,.8)",fontSize:13}}>
+                        <span style={{fontSize:15,flexShrink:0}}>{ic}</span>{t}
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{borderTop:"1px solid rgba(255,255,255,.1)",paddingTop:20,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <div>
+                      <div style={{color:"rgba(255,255,255,.5)",fontSize:12,marginBottom:2}}>Tarif mensuel</div>
+                      <div style={{color:"#25d366",fontWeight:800,fontSize:28,fontFamily:"'Plus Jakarta Sans',sans-serif",lineHeight:1}}>+79 DT <span style={{fontSize:14,fontWeight:500,color:"rgba(255,255,255,.4)"}}>/mois</span></div>
+                    </div>
+                    <button style={{background:"linear-gradient(135deg,#25d366,#1a9e4a)",color:"#fff",border:"none",padding:"11px 20px",borderRadius:11,fontWeight:700,fontSize:13,cursor:"default",boxShadow:"0 6px 18px rgba(37,211,102,.25)"}}>
+                      🔔 Me notifier
+                    </button>
+                  </div>
                 </div>
-              ))}
+              </div>
+
+              {/* ── Option 2 : Avis Clients ── */}
+              <div style={{background:"linear-gradient(160deg,#1a1030,#2d1f4e)",borderRadius:20,padding:mobile?"24px 20px":"32px 28px",position:"relative",overflow:"hidden",border:"1px solid rgba(124,108,240,.25)"}}>
+                <div style={{position:"absolute",top:-50,right:-50,width:180,height:180,background:"rgba(124,108,240,.08)",borderRadius:"50%"}}/>
+                <div style={{position:"absolute",bottom:-40,left:-30,width:140,height:140,background:"rgba(124,108,240,.06)",borderRadius:"50%"}}/>
+                <div style={{position:"relative"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16}}>
+                    <div style={{fontSize:44}}>⭐</div>
+                    <div style={{textAlign:"right"}}>
+                      <div style={{display:"block",background:"rgba(124,108,240,.2)",border:"1px solid rgba(124,108,240,.4)",color:"#a89cf0",padding:"4px 10px",borderRadius:20,fontSize:11,fontWeight:700,letterSpacing:1.5,marginBottom:6}}>COMING SOON</div>
+                      <div style={{color:"rgba(255,255,255,.4)",fontSize:11}}>Collecte automatique</div>
+                    </div>
+                  </div>
+                  <div style={{color:"#fff",fontWeight:800,fontSize:mobile?18:22,marginBottom:6,fontFamily:"'Plus Jakarta Sans',sans-serif",lineHeight:1.2}}>Avis clients<br/>automatisés</div>
+                  <div style={{color:"rgba(255,255,255,.6)",fontSize:13,lineHeight:1.6,marginBottom:20}}>
+                    Collectez des avis clients authentiques après chaque livraison — directement sur WhatsApp, sans effort de votre part.
+                  </div>
+                  <div style={{display:"flex",flexDirection:"column",gap:8,marginBottom:24}}>
+                    {[
+                      ["💬","Message automatique post-livraison"],
+                      ["⭐","Note de 1 à 5 + commentaire libre"],
+                      ["🖼️","Collecte de photos produit clients"],
+                      ["📢","Publication sur votre page WhatsApp"],
+                      ["📈","Tableau de bord satisfaction client"],
+                      ["🔁","Relance si pas de réponse sous 48h"],
+                    ].map(([ic,t])=>(
+                      <div key={t} style={{display:"flex",alignItems:"center",gap:8,color:"rgba(255,255,255,.8)",fontSize:13}}>
+                        <span style={{fontSize:15,flexShrink:0}}>{ic}</span>{t}
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{borderTop:"1px solid rgba(255,255,255,.1)",paddingTop:20,display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                    <div>
+                      <div style={{color:"rgba(255,255,255,.5)",fontSize:12,marginBottom:2}}>Tarif mensuel</div>
+                      <div style={{color:"#a89cf0",fontWeight:800,fontSize:28,fontFamily:"'Plus Jakarta Sans',sans-serif",lineHeight:1}}>+29 DT <span style={{fontSize:14,fontWeight:500,color:"rgba(255,255,255,.4)"}}>/mois</span></div>
+                    </div>
+                    <button style={{background:"linear-gradient(135deg,#7c6cf0,#5a4ed0)",color:"#fff",border:"none",padding:"11px 20px",borderRadius:11,fontWeight:700,fontSize:13,cursor:"default",boxShadow:"0 6px 18px rgba(124,108,240,.25)"}}>
+                      🔔 Me notifier
+                    </button>
+                  </div>
+                </div>
+              </div>
+
             </div>
+
+            {/* Récap pack */}
+            <div style={{background:"#fff",borderRadius:18,padding:mobile?"20px":"28px 32px",boxShadow:"0 4px 20px rgba(0,0,0,.06)",border:"2px solid #e7f7ed"}}>
+              <div style={{display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"center",gap:16}}>
+                <div>
+                  <div style={{fontWeight:800,fontSize:mobile?16:20,fontFamily:"'Plus Jakarta Sans',sans-serif",marginBottom:4}}>🚀 Pack complet — Assistant + Campagnes + Avis</div>
+                  <div style={{color:"#5a6661",fontSize:14}}>Tout inclus pour automatiser vos ventes et votre réputation sur WhatsApp</div>
+                </div>
+                <div style={{textAlign:mobile?"left":"right"}}>
+                  <div style={{color:"#9aa5a0",fontSize:12,marginBottom:2}}>À partir de</div>
+                  <div style={{fontWeight:800,fontSize:mobile?24:32,color:"#1a7a56",fontFamily:"'Plus Jakarta Sans',sans-serif",lineHeight:1}}>
+                    Base + 108 DT<span style={{fontSize:14,fontWeight:500,color:"#9aa5a0"}}>/mois</span>
+                  </div>
+                  <div style={{fontSize:12,color:"#9aa5a0",marginTop:4}}>79 DT campagnes + 29 DT avis</div>
+                </div>
+              </div>
+            </div>
+
           </div>
         )}
 

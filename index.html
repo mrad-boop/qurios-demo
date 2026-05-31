@@ -562,6 +562,23 @@ function Dashboard(){
   const [prodPage,setProdPage]=useState(1);
   const [filterFeatured,setFilterFeatured]=useState(false);
   const [filterCat,setFilterCat]=useState("all");
+  const [exportFilter,setExportFilter]=useState("tous");
+
+  function exportCSV(){
+    const filtered = exportFilter==="tous" ? prospects
+      : prospects.filter(p=>p.statut===exportFilter);
+    const header = ["Nom","Téléphone","Objectif","Produit recommandé","Date","Statut"];
+    const rows = filtered.map(p=>[
+      p.nom||"", p.telephone||"", p.objectif||"",
+      p.produit_recommande||"", p.created_at?.slice(0,10)||"", p.statut||""
+    ].map(v=>`"${String(v).replace(/"/g,'""')}"`).join(","));
+    const csv = "\uFEFF" + [header.join(","), ...rows].join("\n");
+    const blob = new Blob([csv],{type:"text/csv;charset=utf-8"});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href=url; a.download=`prospects_qurios_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click(); URL.revokeObjectURL(url);
+  }
 
   useEffect(()=>{const fn=()=>setMobile(window.innerWidth<768);window.addEventListener("resize",fn);return()=>window.removeEventListener("resize",fn);},[]);
 
@@ -622,12 +639,14 @@ function Dashboard(){
     load();
   }
 
-  // Produits filtrés + paginés
-  const prodFiltres = produits.filter(p=>{
-    if(filterFeatured && !p.featured) return false;
-    if(filterCat!=="all" && p.categorie_id!==filterCat) return false;
-    return true;
-  });
+  // Produits : featured en tête, puis filtre, puis pagination
+  const prodFiltres = produits
+    .filter(p=>{
+      if(filterFeatured && !p.featured) return false;
+      if(filterCat!=="all" && p.categorie_id!==filterCat) return false;
+      return true;
+    })
+    .sort((a,b)=>(b.featured?1:0)-(a.featured?1:0));
   const prodPage_ = prodFiltres.slice((prodPage-1)*PAGE_SIZE, prodPage*PAGE_SIZE);
 
   if(loading) return <div style={{textAlign:"center",padding:60,fontSize:18,color:"#1a7a56"}}><Spinner/> Chargement…</div>;
@@ -652,7 +671,7 @@ function Dashboard(){
       {/* Tabs */}
       <div style={{background:"#fff",borderRadius:16,padding:mobile?14:22,boxShadow:"0 2px 10px rgba(0,0,0,.05)"}}>
         <div style={{display:"flex",gap:8,marginBottom:18,flexWrap:"wrap"}}>
-          {[["commandes","🛒 Commandes"],["prospects","👥 Prospects"],["produits","📦 Produits"],["categories","🗂️ Catégories"]].map(([t,l])=>(
+          {[["commandes","🛒 Commandes"],["prospects","👥 Prospects"],["produits","📦 Produits"],["categories","🗂️ Catégories"],["campagnes","📣 Campagnes"]].map(([t,l])=>(
             <button key={t} onClick={()=>setTab(t)} style={{border:"none",background:tab===t?"#1a7a56":"#eef2f0",color:tab===t?"#fff":"#3a4742",padding:"9px 14px",borderRadius:10,fontWeight:700,fontSize:mobile?11:13,flex:mobile?"1":""}}>
               {l}
             </button>
@@ -701,7 +720,23 @@ function Dashboard(){
         ))}
 
         {/* ── PROSPECTS ── */}
-        {tab==="prospects"&&(mobile?(
+        {tab==="prospects"&&(
+          <div>
+          {/* Toolbar export */}
+          <div style={{display:"flex",gap:10,marginBottom:16,flexWrap:"wrap",alignItems:"center",background:"#f8faf9",borderRadius:12,padding:"12px 16px",border:"1.5px solid #eef2f0"}}>
+            <span style={{fontWeight:700,fontSize:14}}>📤 Exporter les prospects</span>
+            <select value={exportFilter} onChange={e=>setExportFilter(e.target.value)} style={{border:"1.5px solid #e0e8e4",borderRadius:9,padding:"8px 12px",fontSize:13,background:"#fff"}}>
+              <option value="tous">Tous les prospects</option>
+              {STATUTS.map(s=><option key={s} value={s}>{s} seulement</option>)}
+            </select>
+            <button onClick={exportCSV} style={{background:"#1a7a56",color:"#fff",border:"none",padding:"9px 18px",borderRadius:9,fontWeight:700,fontSize:13,display:"flex",alignItems:"center",gap:6}}>
+              ⬇️ Télécharger CSV
+            </button>
+            <span style={{fontSize:12,color:"#9aa5a0",marginLeft:"auto"}}>
+              {exportFilter==="tous"?prospects.length:prospects.filter(p=>p.statut===exportFilter).length} prospect(s)
+            </span>
+          </div>
+          {mobile?(
           prospects.map((p,i)=>(
             <div key={i} style={{background:"#f8faf9",borderRadius:12,padding:14,marginBottom:10,border:"1px solid #eef2f0"}}>
               <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
@@ -735,6 +770,8 @@ function Dashboard(){
             </table>
           </div>
         ))}
+          </div>
+        )}
 
         {/* ── PRODUITS ── */}
         {tab==="produits"&&(
@@ -807,6 +844,53 @@ function Dashboard(){
             </div>
           </div>
         )}
+        {/* ── CAMPAGNES ── */}
+        {tab==="campagnes"&&(
+          <div>
+            {/* Hero coming soon */}
+            <div style={{background:"linear-gradient(135deg,#0d1f1a,#1a3d2e)",borderRadius:18,padding:mobile?"28px 20px":"48px 40px",textAlign:"center",marginBottom:20,position:"relative",overflow:"hidden"}}>
+              <div style={{position:"absolute",top:-40,right:-40,width:200,height:200,background:"rgba(37,211,102,.08)",borderRadius:"50%"}}/>
+              <div style={{position:"absolute",bottom:-60,left:-30,width:160,height:160,background:"rgba(37,211,102,.06)",borderRadius:"50%"}}/>
+              <div style={{fontSize:56,marginBottom:16}}>📣</div>
+              <div style={{display:"inline-block",background:"rgba(37,211,102,.15)",border:"1px solid rgba(37,211,102,.3)",color:"#25d366",padding:"5px 16px",borderRadius:20,fontSize:12,fontWeight:700,letterSpacing:2,marginBottom:16}}>COMING SOON</div>
+              <h2 style={{color:"#fff",fontWeight:800,fontSize:mobile?22:32,marginBottom:12,fontFamily:"'Plus Jakarta Sans',sans-serif",lineHeight:1.2}}>Campagnes WhatsApp<br/>automatisées</h2>
+              <p style={{color:"rgba(255,255,255,.65)",fontSize:15,lineHeight:1.7,maxWidth:520,margin:"0 auto 32px"}}>
+                Envoyez des campagnes ciblées à vos prospects directement sur WhatsApp — relances, promotions, nouveaux produits — avec suivi des ouvertures et des réponses en temps réel.
+              </p>
+              <div style={{display:"grid",gridTemplateColumns:mobile?"1fr":"repeat(3,1fr)",gap:14,maxWidth:640,margin:"0 auto 32px",textAlign:"left"}}>
+                {[
+                  ["🎯","Ciblage avancé","Par objectif, statut, produit acheté ou zone géographique"],
+                  ["⚡","Envoi instantané","Campagne déclenchée en 1 clic vers vos listes segmentées"],
+                  ["📊","Analytics live","Taux d'ouverture, réponses, conversions — tout en temps réel"],
+                  ["🔄","Scénarios auto","Relances automatiques selon le comportement du prospect"],
+                  ["🛒","Panier abandonné","Rappel automatique aux clients qui n'ont pas finalisé"],
+                  ["🎁","Promos exclusives","Codes promo personnalisés avec date d'expiration"],
+                ].map(([ic,t,d])=>(
+                  <div key={t} style={{background:"rgba(255,255,255,.06)",borderRadius:12,padding:"14px 16px",border:"1px solid rgba(255,255,255,.08)"}}>
+                    <div style={{fontSize:24,marginBottom:6}}>{ic}</div>
+                    <div style={{color:"#fff",fontWeight:700,fontSize:13,marginBottom:4}}>{t}</div>
+                    <div style={{color:"rgba(255,255,255,.5)",fontSize:12,lineHeight:1.5}}>{d}</div>
+                  </div>
+                ))}
+              </div>
+              <button style={{background:"linear-gradient(135deg,#25d366,#1a9e4a)",color:"#fff",border:"none",padding:"14px 32px",borderRadius:12,fontWeight:800,fontSize:15,cursor:"default",boxShadow:"0 8px 24px rgba(37,211,102,.3)"}}>
+                🔔 Être notifié au lancement
+              </button>
+              <div style={{color:"rgba(255,255,255,.35)",fontSize:12,marginTop:12}}>Disponible prochainement · Intégration WhatsApp Business API</div>
+            </div>
+
+            {/* Preview stats */}
+            <div style={{display:"grid",gridTemplateColumns:mobile?"1fr 1fr":"repeat(4,1fr)",gap:12}}>
+              {[["248","Prospects à cibler","#25d366"],["96","Commandes à relancer","#1a7a56"],["~68%","Taux d'ouverture WA","#f0a93c"],["3×","ROI estimé campagne","#7c6cf0"]].map(([v,l,c])=>(
+                <div key={l} style={{background:"#fff",borderRadius:14,padding:16,boxShadow:"0 2px 10px rgba(0,0,0,.05)",textAlign:"center",border:`2px solid ${c}22`}}>
+                  <div style={{fontSize:26,fontWeight:800,color:c,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>{v}</div>
+                  <div style={{fontSize:11,color:"#6b7875",marginTop:4,fontWeight:500}}>{l}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );

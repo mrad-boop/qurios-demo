@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>Qurios — Assistant WhatsApp & Dashboard</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --green:#1a7a56;--green2:#0d8a7e;--wa:#075e54;--wa2:#128c7e;
+    --accent:#25d366;--gold:#f0a93c;--pink:#e879a6;--purple:#7c6cf0;
+    --bg:#f0f4f2;--card:#ffffff;--text:#182420;--muted:#6b7875;
+    --border:#e4ece8;
+  }
+  html,body{height:100%;font-family:'DM Sans',system-ui,sans-serif;background:var(--bg);color:var(--text)}
+  button{cursor:pointer;font-family:inherit}
+  ::-webkit-scrollbar{width:5px;height:5px}
+  ::-webkit-scrollbar-track{background:#f0f4f2}
+  ::-webkit-scrollbar-thumb{background:#c5d4cc;border-radius:10px}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef } = React;
+
+/* ─── DATA ─────────────────────────────────────────────── */
+const PRODUITS = {
+  "Peau et beauté":    { nom:"Collagen Glow Boost",    emoji:"✨", desc:"Particulièrement apprécié pour l'éclat de la peau et le maintien de son élasticité." },
+  "Perte de poids":   { nom:"Minci Boost Premium",    emoji:"🔥", desc:"Conçu pour accompagner les objectifs de perte de poids et le contrôle de l'appétit." },
+  "Plus d'énergie":   { nom:"Spiruline",               emoji:"⚡", desc:"Idéale pour soutenir l'énergie et la vitalité au quotidien." },
+  "Stress et sommeil":{ nom:"Ashwagandha KSM-66",      emoji:"🌙", desc:"Aide à gérer le stress et favorise une relaxation profonde." },
+  "Digestion":        { nom:"Digest Boost",            emoji:"🌿", desc:"Pour améliorer le confort digestif et soutenir une bonne digestion." },
+};
+const OBJECTIFS = Object.keys(PRODUITS);
+
+const PROSPECTS = [
+  {nom:"Sonia Ben Ali",   tel:"22 123 456", objectif:"Peau et beauté",    produit:"Collagen Glow Boost",  date:"2026-05-31", statut:"Nouveau"},
+  {nom:"Karim Trabelsi",  tel:"98 552 014", objectif:"Perte de poids",    produit:"Minci Boost Premium",  date:"2026-05-31", statut:"Contacté"},
+  {nom:"Leïla Mansour",   tel:"55 880 221", objectif:"Stress et sommeil", produit:"Ashwagandha KSM-66",   date:"2026-05-30", statut:"Confirmé"},
+  {nom:"Yassine Khelifi", tel:"21 447 903", objectif:"Plus d'énergie",    produit:"Spiruline",            date:"2026-05-30", statut:"Nouveau"},
+  {nom:"Amira Gharbi",    tel:"29 116 740", objectif:"Digestion",         produit:"Digest Boost",         date:"2026-05-29", statut:"Contacté"},
+  {nom:"Mehdi Sassi",     tel:"50 903 118", objectif:"Peau et beauté",    produit:"Collagen Glow Boost",  date:"2026-05-29", statut:"Confirmé"},
+];
+const COMMANDES = [
+  {num:"CMD-1042", client:"Sonia Ben Ali",   produit:"Collagen Glow Boost",  qte:2, ville:"Tunis",  statut:"Confirmé"},
+  {num:"CMD-1041", client:"Leïla Mansour",   produit:"Ashwagandha KSM-66",   qte:1, ville:"Sousse", statut:"Expédié"},
+  {num:"CMD-1040", client:"Mehdi Sassi",     produit:"Collagen Glow Boost",  qte:3, ville:"Sfax",   statut:"Livré"},
+  {num:"CMD-1039", client:"Karim Trabelsi",  produit:"Minci Boost Premium",  qte:2, ville:"Ariana", statut:"Nouveau"},
+  {num:"CMD-1038", client:"Amira Gharbi",    produit:"Digest Boost",         qte:1, ville:"Nabeul", statut:"Confirmé"},
+];
+const STATUT_C = {
+  Nouveau:  {bg:"#e8f0ff",fg:"#2563eb"},
+  Contacté: {bg:"#fff4e0",fg:"#c2740a"},
+  Confirmé: {bg:"#e7f7ed",fg:"#0f9d58"},
+  Expédié:  {bg:"#ede9ff",fg:"#6d28d9"},
+  Livré:    {bg:"#e1f6f4",fg:"#0d8a7e"},
+};
+const PROD_DEMANDE = [
+  {nom:"Collagen Glow Boost",  val:42, color:"#e879a6"},
+  {nom:"Minci Boost Premium",  val:31, color:"#1a7a56"},
+  {nom:"Ashwagandha KSM-66",   val:24, color:"#7c6cf0"},
+  {nom:"Spiruline",            val:19, color:"#f0a93c"},
+  {nom:"Digest Boost",         val:14, color:"#3cb4f0"},
+];
+const BESOINS = [
+  {nom:"Peau et beauté",   val:34, color:"#e879a6"},
+  {nom:"Perte de poids",   val:26, color:"#1a7a56"},
+  {nom:"Stress et sommeil",val:18, color:"#7c6cf0"},
+  {nom:"Plus d\'énergie",   val:13, color:"#f0a93c"},
+  {nom:"Digestion",        val:9,  color:"#3cb4f0"},
+];
+const MOIS = ["Déc","Jan","Fév","Mar","Avr","Mai"];
+const P_MOIS = [22,31,28,45,52,70];
+const C_MOIS = [8,12,11,18,22,25];
+
+/* ─── UTILS ─────────────────────────────────────────────── */
+function now(){const d=new Date();return d.getHours().toString().padStart(2,"0")+":"+d.getMinutes().toString().padStart(2,"0")}
+
+function Bold({text}){
+  const parts = text.split(/(\*[^*]+\*)/g);
+  return <span>{parts.map((p,i)=>p.startsWith("*")&&p.endsWith("*")?<strong key={i}>{p.slice(1,-1)}</strong>:<span key={i}>{p}</span>)}</span>;
+}
+
+function Badge({statut}){
+  const c = STATUT_C[statut]||{bg:"#eee",fg:"#555"};
+  return <span style={{padding:"3px 11px",borderRadius:20,fontSize:12,fontWeight:700,background:c.bg,color:c.fg}}>{statut}</span>;
+}
+
+/* ─── WHATSAPP ──────────────────────────────────────────── */
+function WA(){
+  const [msgs,setMsgs]=useState([]);
+  const [opts,setOpts]=useState([]);
+  const [step,setStep]=useState("start");
+  const [input,setInput]=useState("");
+  const [inputMode,setInputMode]=useState(false);
+  const [typing,setTyping]=useState(false);
+  const endRef=useRef(null);
+
+  useEffect(()=>{endRef.current?.scrollIntoView({behavior:"smooth"})},[msgs,opts,typing]);
+
+  function bot(text){setMsgs(m=>[...m,{from:"bot",text,time:now()}])}
+  function user(text){setMsgs(m=>[...m,{from:"user",text,time:now()}])}
+
+  function delayBot(fn,d=700){
+    setOpts([]);setTyping(true);
+    setTimeout(()=>{setTyping(false);fn();},d);
+  }
+
+  useEffect(()=>{
+    bot("Bonjour 👋\n\nBienvenue chez *Qurios*.\nJe suis votre assistant virtuel.\n\nJe peux vous aider à trouver les produits les plus adaptés à vos besoins ou à passer une commande.\n\nComment puis-je vous aider ?");
+    setOpts(["Trouver un produit adapté","Passer une commande","Suivre ma commande","Questions fréquentes"]);
+  },[]);
+
+  function reset(){
+    setMsgs([]);setOpts([]);setStep("start");setInput("");setInputMode(false);setTyping(false);
+    setTimeout(()=>{
+      bot("Bonjour 👋\n\nBienvenue chez *Qurios*.\nJe suis votre assistant virtuel.\n\nComment puis-je vous aider ?");
+      setOpts(["Trouver un produit adapté","Passer une commande","Suivre ma commande","Questions fréquentes"]);
+    },150);
+  }
+
+  function handleOpt(opt){
+    user(opt); setOpts([]);
+    if(step==="start"){
+      if(opt==="Trouver un produit adapté"){
+        delayBot(()=>{bot("Quel est votre prénom ?");setInputMode(true);setStep("prenom");});
+      } else if(opt==="Passer une commande"){
+        delayBot(()=>{bot("Veuillez renseigner les informations suivantes :\n\n• Nom complet\n• Téléphone\n• Ville\n• Adresse\n• Produit choisi\n• Quantité");setInputMode(true);setStep("order");});
+      } else if(opt==="Suivre ma commande"){
+        delayBot(()=>{bot("Veuillez indiquer votre numéro de commande (ex : CMD-1042).");setInputMode(true);setStep("track");});
+      } else {
+        delayBot(()=>{bot("❓ *Questions fréquentes*\n\n• Livraison 24–72h partout en Tunisie 🇹🇳\n• Paiement à la livraison disponible\n• Produits 100% certifiés et naturels\n\nQue souhaitez-vous faire ?");setOpts(["Trouver un produit adapté","Passer une commande"]);});
+      }
+    } else if(step==="objectif"){
+      const p=PRODUITS[opt];
+      delayBot(()=>{bot(`Nous vous recommandons :\n\n${p.emoji} *${p.nom}*\n\n${p.desc}\n\nSouhaitez-vous être contacté par un conseiller ou passer une commande ?`);setOpts(["Commander","Être contacté"]);setStep("action");});
+    } else if(step==="action"){
+      if(opt==="Commander"){
+        delayBot(()=>{bot("Parfait ! Veuillez renseigner :\n\n• Nom complet\n• Téléphone\n• Ville\n• Adresse\n• Produit choisi\n• Quantité");setInputMode(true);setStep("order");});
+      } else {
+        delayBot(()=>{bot("✅ Merci !\n\nUn conseiller *Qurios* vous contactera très prochainement 😊");setOpts(["↺ Recommencer"]);setStep("end");});
+      }
+    } else if(step==="end"){
+      reset();
+    }
+  }
+
+  function handleSend(){
+    if(!input.trim())return;
+    const val=input.trim(); user(val); setInput(""); setInputMode(false);
+    if(step==="prenom"){
+      delayBot(()=>{bot(`Enchanté *${val}* 😊\n\nQuel est votre objectif principal ?`);setOpts(OBJECTIFS);setStep("objectif");});
+    } else if(step==="order"){
+      delayBot(()=>{bot("✅ *Merci.*\n\nVotre commande a été enregistrée avec succès.\n\nNotre équipe vous contactera prochainement pour la confirmation.");setOpts(["↺ Recommencer"]);setStep("end");},900);
+    } else if(step==="track"){
+      delayBot(()=>{bot(`📦 Commande *${val.toUpperCase()}*\nStatut : *Expédié* 🚚\nLivraison estimée : 24–48h.`);setOpts(["↺ Recommencer"]);setStep("end");});
+    }
+  }
+
+  return (
+    <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:14}}>
+      {/* Phone frame */}
+      <div style={{width:358,background:"#111b17",borderRadius:34,padding:"10px 10px 0",boxShadow:"0 30px 80px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.06)",display:"flex",flexDirection:"column",overflow:"hidden",height:660}}>
+        {/* Status bar */}
+        <div style={{display:"flex",justifyContent:"space-between",padding:"4px 14px 8px",color:"rgba(255,255,255,.7)",fontSize:11}}>
+          <span>9:41</span><span>●●● 5G 🔋</span>
+        </div>
+        {/* WA Header */}
+        <div style={{background:"#075e54",display:"flex",alignItems:"center",gap:11,padding:"10px 14px 12px"}}>
+          <div style={{width:36,height:36,borderRadius:"50%",background:"linear-gradient(135deg,#25d366,#0d8a7e)",display:"grid",placeItems:"center",fontWeight:800,color:"#fff",fontSize:17,flexShrink:0}}>Q</div>
+          <div style={{flex:1}}>
+            <div style={{color:"#fff",fontWeight:700,fontSize:14,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>Qurios</div>
+            <div style={{color:"rgba(255,255,255,.75)",fontSize:11}}>en ligne</div>
+          </div>
+          <span style={{color:"rgba(255,255,255,.8)",fontSize:20}}>⋮</span>
+        </div>
+        {/* Chat body */}
+        <div style={{flex:1,background:"#e5ddd5",backgroundImage:"url(\"data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h60v60H0z' fill='none'/%3E%3C/svg%3E\")",overflowY:"auto",padding:"12px 10px",display:"flex",flexDirection:"column",gap:6}}>
+          {msgs.map((m,i)=>(
+            <div key={i} style={{
+              maxWidth:"82%",padding:"8px 11px 18px",borderRadius:10,fontSize:13,lineHeight:1.45,
+              position:"relative",boxShadow:"0 1px 2px rgba(0,0,0,.12)",
+              alignSelf:m.from==="bot"?"flex-start":"flex-end",
+              background:m.from==="bot"?"#fff":"#dcf8c6",
+              borderTopLeftRadius:m.from==="bot"?2:10,
+              borderTopRightRadius:m.from==="user"?2:10,
+            }}>
+              <span style={{whiteSpace:"pre-wrap"}}><Bold text={m.text}/></span>
+              <span style={{position:"absolute",bottom:3,right:9,fontSize:9,color:"#7a857f"}}>{m.time}</span>
+            </div>
+          ))}
+          {typing&&(
+            <div style={{alignSelf:"flex-start",background:"#fff",borderRadius:10,padding:"10px 14px",boxShadow:"0 1px 2px rgba(0,0,0,.1)"}}>
+              <span style={{display:"flex",gap:4,alignItems:"center"}}>
+                {[0,1,2].map(i=><span key={i} style={{width:7,height:7,borderRadius:"50%",background:"#aaa",animation:`bounce 1.2s ${i*0.2}s infinite`}}/>)}
+              </span>
+            </div>
+          )}
+          {opts.length>0&&(
+            <div style={{display:"flex",flexDirection:"column",gap:5,alignSelf:"flex-start",maxWidth:"88%",marginTop:2}}>
+              {opts.map(o=>(
+                <button key={o} onClick={()=>handleOpt(o)} style={{background:"#fff",border:"1.5px solid #b2dfce",color:"#075e54",padding:"9px 13px",borderRadius:10,fontSize:12.5,textAlign:"left",fontWeight:600,transition:"all .15s",fontFamily:"'DM Sans',sans-serif"}}>
+                  🟢 {o}
+                </button>
+              ))}
+            </div>
+          )}
+          <div ref={endRef}/>
+        </div>
+        {/* Input */}
+        <div style={{display:"flex",alignItems:"flex-end",gap:7,padding:"8px 8px 10px",background:"#f0f0f0",borderTop:"1px solid #ddd"}}>
+          {inputMode ? (
+            <>
+              <textarea value={input} onChange={e=>setInput(e.target.value)}
+                onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();handleSend()}}}
+                placeholder="Votre message…" rows={step==="order"?4:1}
+                style={{flex:1,border:"none",borderRadius:20,padding:"9px 14px",fontSize:13,resize:"none",outline:"none",fontFamily:"'DM Sans',sans-serif",maxHeight:90}}/>
+              <button onClick={handleSend} style={{width:38,height:38,borderRadius:"50%",border:"none",background:"#075e54",color:"#fff",fontSize:16,display:"grid",placeItems:"center",flexShrink:0}}>➤</button>
+            </>
+          ):(
+            <div style={{flex:1,background:"#fff",borderRadius:20,padding:"9px 14px",fontSize:12.5,color:"#9aa0a6"}}>Choisissez une option…</div>
+          )}
+        </div>
+        {step==="order"&&inputMode&&(
+          <button onClick={()=>setInput("Nom : Sonia Ben Ali\nTéléphone : 22 123 456\nVille : Tunis\nAdresse : Lac 2\nProduit : Collagen Glow Boost\nQuantité : 2")}
+            style={{background:"#128c7e",color:"#fff",border:"none",padding:"7px",fontSize:11.5,fontFamily:"'DM Sans',sans-serif"}}>
+            📋 Remplir avec un exemple
+          </button>
+        )}
+      </div>
+      <button onClick={reset} style={{background:"#fff",border:"1.5px solid #c8d8d2",padding:"9px 20px",borderRadius:10,fontSize:13,fontWeight:600,color:"#2c3a35",boxShadow:"0 2px 8px rgba(0,0,0,.06)"}}>
+        ↺ Recommencer la démo
+      </button>
+      <style>{`@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}`}</style>
+    </div>
+  );
+}
+
+/* ─── DASHBOARD ─────────────────────────────────────────── */
+function StatCard({label,value,sub,color}){
+  return(
+    <div style={{background:"#fff",borderRadius:16,padding:"22px 22px 18px",position:"relative",overflow:"hidden",boxShadow:"0 2px 12px rgba(0,0,0,.05)"}}>
+      <div style={{position:"absolute",top:0,left:0,right:0,height:4,background:color,borderRadius:"16px 16px 0 0"}}/>
+      <div style={{fontSize:36,fontWeight:800,fontFamily:"'Plus Jakarta Sans',sans-serif",color:color,lineHeight:1}}>{value}</div>
+      <div style={{fontSize:13.5,color:"#5a6661",marginTop:6,fontWeight:500}}>{label}</div>
+      {sub&&<div style={{fontSize:12,color:"#0f9d58",marginTop:8,fontWeight:700,display:"flex",alignItems:"center",gap:4}}>▲ {sub}</div>}
+    </div>
+  );
+}
+
+function BarChart(){
+  const max=Math.max(...P_MOIS,...C_MOIS)*1.2;
+  return(
+    <div>
+      <div style={{display:"flex",gap:18,fontSize:12,color:"#6b7875",marginBottom:14}}>
+        <span><i style={{display:"inline-block",width:10,height:10,borderRadius:3,background:"#1a7a56",marginRight:5}}/> Prospects</span>
+        <span><i style={{display:"inline-block",width:10,height:10,borderRadius:3,background:"#9be3c4",marginRight:5}}/> Commandes</span>
+      </div>
+      <div style={{display:"flex",alignItems:"flex-end",gap:10,height:160}}>
+        {MOIS.map((l,i)=>(
+          <div key={l} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",height:"100%"}}>
+            <div style={{flex:1,display:"flex",alignItems:"flex-end",gap:3,width:"100%",justifyContent:"center"}}>
+              <div style={{width:12,background:"#1a7a56",height:`${(P_MOIS[i]/max)*100}%`,borderRadius:"3px 3px 0 0",transition:"height .6s"}}/>
+              <div style={{width:12,background:"#9be3c4",height:`${(C_MOIS[i]/max)*100}%`,borderRadius:"3px 3px 0 0",transition:"height .6s"}}/>
+            </div>
+            <div style={{fontSize:11,color:"#6b7875",marginTop:6}}>{l}</div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function HBar(){
+  const max=Math.max(...PROD_DEMANDE.map(d=>d.val));
+  return(
+    <div style={{display:"flex",flexDirection:"column",gap:14}}>
+      {PROD_DEMANDE.map(d=>(
+        <div key={d.nom}>
+          <div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:5}}>
+            <span style={{fontWeight:500}}>{d.nom}</span>
+            <span style={{fontWeight:700,color:d.color}}>{d.val}</span>
+          </div>
+          <div style={{background:"#eef2f0",borderRadius:6,height:10,overflow:"hidden"}}>
+            <div style={{width:`${(d.val/max)*100}%`,height:"100%",background:d.color,borderRadius:6,transition:"width .6s"}}/>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function Donut(){
+  const total=BESOINS.reduce((s,d)=>s+d.val,0);
+  let acc=0;
+  const grad=BESOINS.map(d=>{
+    const s=(acc/total)*360; acc+=d.val; const e=(acc/total)*360;
+    return `${d.color} ${s}deg ${e}deg`;
+  }).join(",");
+  return(
+    <div style={{display:"flex",gap:28,alignItems:"center",flexWrap:"wrap"}}>
+      <div style={{width:140,height:140,borderRadius:"50%",background:`conic-gradient(${grad})`,position:"relative",flexShrink:0,boxShadow:"0 4px 20px rgba(0,0,0,.1)"}}>
+        <div style={{position:"absolute",inset:30,background:"#fff",borderRadius:"50%",display:"grid",placeItems:"center",textAlign:"center"}}>
+          <div><div style={{fontSize:22,fontWeight:800,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>{total}</div><div style={{fontSize:10,color:"#9aa5a0"}}>clients</div></div>
+        </div>
+      </div>
+      <div style={{display:"flex",flexDirection:"column",gap:9}}>
+        {BESOINS.map(d=>(
+          <div key={d.nom} style={{display:"flex",alignItems:"center",gap:8,fontSize:13}}>
+            <i style={{display:"inline-block",width:10,height:10,borderRadius:3,background:d.color,flexShrink:0}}/>
+            <span>{d.nom}</span>
+            <strong style={{marginLeft:"auto",paddingLeft:12,color:d.color}}>{Math.round(d.val/total*100)}%</strong>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function Dashboard(){
+  const [tab,setTab]=useState("prospects");
+  return(
+    <div>
+      {/* Stats */}
+      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:16,marginBottom:24}}>
+        <StatCard label="Prospects total" value="248" color="#1a7a56"/>
+        <StatCard label="Commandes total" value="96"  color="#0d8a7e"/>
+        <StatCard label="Prospects aujourd'hui" value="18" sub="12% vs hier" color="#e879a6"/>
+        <StatCard label="Commandes aujourd'hui" value="7"  sub="3 de plus vs hier" color="#f0a93c"/>
+      </div>
+      {/* Charts */}
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
+        <div style={{background:"#fff",borderRadius:16,padding:22,boxShadow:"0 2px 12px rgba(0,0,0,.05)"}}>
+          <h3 style={{fontSize:15,fontWeight:700,marginBottom:18,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>Prospects & Commandes / mois</h3>
+          <BarChart/>
+        </div>
+        <div style={{background:"#fff",borderRadius:16,padding:22,boxShadow:"0 2px 12px rgba(0,0,0,.05)"}}>
+          <h3 style={{fontSize:15,fontWeight:700,marginBottom:18,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>Produits les plus demandés</h3>
+          <HBar/>
+        </div>
+        <div style={{background:"#fff",borderRadius:16,padding:22,boxShadow:"0 2px 12px rgba(0,0,0,.05)",gridColumn:"1/-1"}}>
+          <h3 style={{fontSize:15,fontWeight:700,marginBottom:18,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>Répartition des besoins clients</h3>
+          <Donut/>
+        </div>
+      </div>
+      {/* Tables */}
+      <div style={{background:"#fff",borderRadius:16,padding:22,boxShadow:"0 2px 12px rgba(0,0,0,.05)"}}>
+        <div style={{display:"flex",gap:8,marginBottom:18}}>
+          {["prospects","commandes"].map(t=>(
+            <button key={t} onClick={()=>setTab(t)} style={{border:"none",background:tab===t?"#1a7a56":"#eef2f0",color:tab===t?"#fff":"#3a4742",padding:"9px 20px",borderRadius:10,fontWeight:700,fontSize:13.5,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+              {t==="prospects"?"👥 Prospects":"🛒 Commandes"}
+            </button>
+          ))}
+        </div>
+        <div style={{overflowX:"auto"}}>
+          {tab==="prospects"?(
+            <table style={{width:"100%",borderCollapse:"collapse",fontSize:13.5}}>
+              <thead>
+                <tr>{["Nom","Téléphone","Objectif","Produit recommandé","Date","Statut"].map(h=>(
+                  <th key={h} style={{textAlign:"left",padding:"10px 12px",color:"#6b7875",borderBottom:"2px solid #eef2f0",fontWeight:600,whiteSpace:"nowrap",fontSize:12}}>{h}</th>
+                ))}</tr>
+              </thead>
+              <tbody>
+                {PROSPECTS.map((p,i)=>(
+                  <tr key={i} style={{borderBottom:"1px solid #f3f6f4"}}>
+                    <td style={{padding:"12px",fontWeight:600}}>{p.nom}</td>
+                    <td style={{padding:"12px",color:"#5a6661"}}>{p.tel}</td>
+                    <td style={{padding:"12px"}}>{p.objectif}</td>
+                    <td style={{padding:"12px"}}>{p.produit}</td>
+                    <td style={{padding:"12px",color:"#5a6661"}}>{p.date}</td>
+                    <td style={{padding:"12px"}}><Badge statut={p.statut}/></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ):(
+            <table style={{width:"100%",borderCollapse:"collapse",fontSize:13.5}}>
+              <thead>
+                <tr>{["Numéro","Client","Produit","Qté","Ville","Statut"].map(h=>(
+                  <th key={h} style={{textAlign:"left",padding:"10px 12px",color:"#6b7875",borderBottom:"2px solid #eef2f0",fontWeight:600,whiteSpace:"nowrap",fontSize:12}}>{h}</th>
+                ))}</tr>
+              </thead>
+              <tbody>
+                {COMMANDES.map((c,i)=>(
+                  <tr key={i} style={{borderBottom:"1px solid #f3f6f4"}}>
+                    <td style={{padding:"12px",fontWeight:700,color:"#1a7a56"}}>{c.num}</td>
+                    <td style={{padding:"12px",fontWeight:500}}>{c.client}</td>
+                    <td style={{padding:"12px"}}>{c.produit}</td>
+                    <td style={{padding:"12px",textAlign:"center",fontWeight:700}}>{c.qte}</td>
+                    <td style={{padding:"12px",color:"#5a6661"}}>{c.ville}</td>
+                    <td style={{padding:"12px"}}><Badge statut={c.statut}/></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ─── APP ───────────────────────────────────────────────── */
+function App(){
+  const [view,setView]=useState("whatsapp");
+  return(
+    <div style={{minHeight:"100vh",fontFamily:"'DM Sans',system-ui,sans-serif",background:"#f0f4f2",color:"#182420"}}>
+      {/* Topbar */}
+      <header style={{background:"#fff",borderBottom:"1px solid #e4ece8",padding:"14px 32px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:20,boxShadow:"0 2px 12px rgba(0,0,0,.04)"}}>
+        <div style={{display:"flex",alignItems:"center",gap:13}}>
+          <div style={{width:44,height:44,borderRadius:13,background:"linear-gradient(135deg,#1a7a56,#0d8a7e)",display:"grid",placeItems:"center",color:"#fff",fontWeight:800,fontSize:22,fontFamily:"'Plus Jakarta Sans',sans-serif",boxShadow:"0 4px 12px rgba(26,122,86,.3)"}}>Q</div>
+          <div>
+            <div style={{fontWeight:800,letterSpacing:2.5,fontSize:17,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>QURIOS</div>
+            <div style={{fontSize:10.5,color:"#8a9490",letterSpacing:1.5,textTransform:"uppercase"}}>Compléments · Cosmétiques</div>
+          </div>
+        </div>
+        <nav style={{display:"flex",gap:8}}>
+          {[["whatsapp","💬  Démo WhatsApp"],["dashboard","📊  Dashboard Admin"]].map(([v,l])=>(
+            <button key={v} onClick={()=>setView(v)} style={{border:"none",background:view===v?"#1a7a56":"#eef2f0",color:view===v?"#fff":"#3a4742",padding:"10px 18px",borderRadius:11,fontWeight:700,fontSize:13.5,fontFamily:"'Plus Jakarta Sans',sans-serif",boxShadow:view===v?"0 4px 14px rgba(26,122,86,.25)":"none",transition:"all .2s"}}>
+              {l}
+            </button>
+          ))}
+        </nav>
+      </header>
+
+      <main style={{maxWidth:1200,margin:"0 auto",padding:"32px 24px 80px"}}>
+        {view==="whatsapp"?(
+          <div style={{display:"grid",gridTemplateColumns:"1fr auto",gap:48,alignItems:"start"}}>
+            <div style={{paddingTop:12}}>
+              <div style={{display:"inline-block",background:"#e7f7ed",color:"#0f7a4f",padding:"5px 14px",borderRadius:20,fontSize:12,fontWeight:700,letterSpacing:1,marginBottom:18}}>DÉMO INTERACTIVE</div>
+              <h1 style={{fontSize:38,fontWeight:800,lineHeight:1.12,marginBottom:16,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+                Assistant WhatsApp<br/>
+                <span style={{background:"linear-gradient(90deg,#1a7a56,#25d366)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>pour Qurios</span>
+              </h1>
+              <p style={{fontSize:16,color:"#4a5c55",lineHeight:1.7,maxWidth:480,marginBottom:28}}>
+                Découvrez comment WhatsApp accompagne vos clients 24h/24 : recommandation personnalisée, prise de commande et suivi — entièrement automatisé.
+              </p>
+              <div style={{display:"flex",flexDirection:"column",gap:14,marginBottom:28}}>
+                {[["🤖","Recommandation produit selon l'objectif du client"],["🛒","Prise de commande complète dans le chat"],["📦","Suivi de commande en temps réel"],["📈","Chaque échange alimente le Dashboard Admin"]].map(([e,t])=>(
+                  <div key={t} style={{display:"flex",alignItems:"center",gap:12,fontSize:14.5,color:"#2c3a35"}}>
+                    <span style={{fontSize:20}}>{e}</span>{t}
+                  </div>
+                ))}
+              </div>
+              <div style={{background:"linear-gradient(135deg,#e7f7ed,#d4f0e5)",padding:"14px 18px",borderRadius:13,display:"inline-flex",alignItems:"center",gap:10,fontSize:13.5,fontWeight:600,color:"#0f7a4f",border:"1px solid #b2dfce"}}>
+                👉 Essayez : cliquez sur les boutons verts du chat →
+              </div>
+            </div>
+            <WA/>
+          </div>
+        ):(
+          <Dashboard/>
+        )}
+      </main>
+
+      <footer style={{textAlign:"center",padding:"20px",color:"#9aa5a0",fontSize:12.5,borderTop:"1px solid #e4ece8",background:"#fff"}}>
+        © 2026 Qurios — Démonstration commerciale · Tous droits réservés
+      </footer>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
+</script>
+</body>
+</html>

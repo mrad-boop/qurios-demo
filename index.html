@@ -30,7 +30,10 @@ const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 
 async function sb(table, opts={}) {
   const { method="GET", filter="", body=null, select="*" } = opts;
-  let url = `${SB_URL}/rest/v1/${table}?select=${select}${filter}`;
+  const params = new URLSearchParams();
+  params.set("select", select);
+  // filter peut contenir &key=val — on l'ajoute brut après les params
+  let url = `${SB_URL}/rest/v1/${table}?${params.toString()}${filter}`;
   const res = await fetch(url, {
     method,
     headers: {
@@ -88,7 +91,7 @@ function WA(){
 
   // Charger produits depuis Supabase
   useEffect(()=>{
-    sb("produits","*,categories(nom)").then(setProduits).catch(console.error);
+    sb("produits",{select:"*,categories(nom)",filter:"&order=created_at.asc"}).then(setProduits).catch(console.error);
   },[]);
 
   function bot(text){setMsgs(m=>[...m,{from:"bot",text,time:now()}])}
@@ -365,7 +368,7 @@ function Dashboard(){
       const [cmd,pros,prod,cat]=await Promise.all([
         sb("commandes",{filter:"&order=created_at.desc"}),
         sb("prospects",{filter:"&order=created_at.desc"}),
-        sb("produits",{filter:"&order=created_at.asc&select=*,categories(nom)"}),
+        sb("produits",{select:"*,categories(nom)",filter:"&order=created_at.asc"}),
         sb("categories",{filter:"&order=ordre.asc"}),
       ]);
       setCommandes(cmd);setProspects(pros);setProduits(prod);setCategories(cat);

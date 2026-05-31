@@ -15,116 +15,61 @@ button{cursor:pointer;font-family:inherit}
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:#f0f4f2}::-webkit-scrollbar-thumb{background:#c5d4cc;border-radius:10px}
 @keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-@keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{animation:spin .8s linear infinite;display:inline-block}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel">
-const { useState, useEffect, useRef } = React;
+const { useState, useEffect, useRef, useCallback } = React;
 
-/* ══════════════════════════════════════════
-   CATALOGUE RÉEL — qurios.tn
-══════════════════════════════════════════ */
-const CATALOGUE = {
-  complements: [
-    { id:"collagen",   nom:"Collagen Glow Boost",     prix:179, emoji:"✨", img:"https://qurios.tn/wp-content/uploads/2024/01/collagene-site.png",      objectifs:["Peau et beauté","Cheveux & ongles"], desc:"Collagène liquide bioactif — 5g/ampoule. Éclat, élasticité, anti-âge.", badge:"⭐ Best-seller" },
-    { id:"minci",      nom:"Minci Boost Premium",      prix:159, emoji:"🔥", img:"https://qurios.tn/wp-content/uploads/2024/08/minci-600px.jpg",          objectifs:["Perte de poids"],                    desc:"Stimule le métabolisme, brûle les graisses, réduit l'appétit.", badge:"🔥 Top vente" },
-    { id:"keratin",    nom:"Keratin Boost Premium",    prix:159, emoji:"💇", img:"https://qurios.tn/wp-content/uploads/2025/01/keratin-600.jpg",          objectifs:["Cheveux & ongles"],                  desc:"Kératine brevetée Cynatine HNS. Cheveux forts, brillants, résistants.", badge:null },
-    { id:"digest",     nom:"Digest Boost®",            prix:29,  emoji:"🌿", img:"https://qurios.tn/wp-content/uploads/2023/11/digest-boost-2.png",       objectifs:["Digestion"],                         desc:"Confort digestif, transit régulier, bien-être intestinal.", badge:null },
-    { id:"spiruline",  nom:"Spiruline 60 gélules",     prix:29,  emoji:"⚡", img:"https://qurios.tn/wp-content/uploads/2023/11/spiruline-web.png",        objectifs:["Plus d'énergie","Immunité"],          desc:"Énergie, vitalité, lutte contre la fatigue chronique.", badge:null },
-    { id:"ashwa",      nom:"Ashwagandha KSM-66",       prix:29,  emoji:"🌙", img:"https://qurios.tn/wp-content/uploads/2024/11/post-web-site-collagene-1.jpg", objectifs:["Stress et sommeil"],            desc:"Adaptogène naturel — gestion du stress, sommeil réparateur.", badge:null },
-    { id:"magne",      nom:"Magné-Boost",              prix:26,  emoji:"💊", img:"https://qurios.tn/wp-content/uploads/2023/11/MAGNE.jpg",               objectifs:["Stress et sommeil","Plus d'énergie"], desc:"Magnésium marin — anti-fatigue, détente musculaire.", badge:null },
-    { id:"moringa",    nom:"Moringa 60 gélules",       prix:29,  emoji:"🌱", img:"https://qurios.tn/wp-content/uploads/2024/05/moringa-web.png",          objectifs:["Plus d'énergie","Immunité"],          desc:"Superaliment naturel riche en nutriments essentiels.", badge:null },
-    { id:"zinc",       nom:"Zinc + Vitamine C Boost",  prix:26,  emoji:"🛡️", img:"https://qurios.tn/wp-content/uploads/2025/08/ZINC.jpg",                objectifs:["Immunité"],                          desc:"Défenses immunitaires renforcées, antioxydant puissant.", badge:null },
-    { id:"multivita",  nom:"Multivita-Boost",          prix:29,  emoji:"🌟", img:"https://qurios.tn/wp-content/uploads/2025/09/Multivita-png-600x600.png", objectifs:["Immunité","Plus d'énergie"],         desc:"Complexe multivitaminé complet pour l'immunité globale.", badge:null },
-    { id:"omega3",     nom:"Omega 3 (30 capsules)",    prix:29,  emoji:"🐟", img:"https://qurios.tn/wp-content/uploads/2025/11/OMEGA-3-1-600x600.png",    objectifs:["Santé globale"],                     desc:"Cœur, cerveau, articulations. Acides gras essentiels EPA/DHA.", badge:null },
-    { id:"vitd3",      nom:"Vitamin D3+K2 (30 gél.)",  prix:29,  emoji:"☀️", img:"https://qurios.tn/wp-content/uploads/2025/11/D3-K2.jpg",               objectifs:["Santé globale","Immunité"],           desc:"Santé osseuse, immunité, densité minérale.", badge:null },
-    { id:"fer",        nom:"Fer Boost (30 gélules)",   prix:25,  emoji:"🩸", img:"https://qurios.tn/wp-content/uploads/2025/11/FER-BOOST.jpg",            objectifs:["Plus d'énergie"],                    desc:"Lutte contre l'anémie et la fatigue intense.", badge:null },
-    { id:"calma",      nom:"Calma Boost",              prix:28,  emoji:"😌", img:"https://qurios.tn/wp-content/uploads/2025/08/IO.jpg",                   objectifs:["Stress et sommeil"],                 desc:"Relaxation profonde et sérénité au quotidien.", badge:null },
-  ],
-  cosmetiques: [
-    { id:"qclean",    nom:"Q-Clean Skin (mousse)",     prix:29,  emoji:"🫧", img:"https://qurios.tn/wp-content/uploads/2025/05/mousse-rose-2.png",        objectifs:["Peau et beauté"],                    desc:"Mousse nettoyante douce pour peaux sensibles.", badge:null },
-    { id:"qclear1",   nom:"Q-Clear Sérum Purifiant",   prix:49,  emoji:"💧", img:"https://qurios.tn/wp-content/uploads/2025/05/serum-vert-pack.png",      objectifs:["Peau et beauté"],                    desc:"Sérum purifiant anti-imperfections.", badge:null },
-    { id:"qclear2",   nom:"Q-Clear Sérum Apaisant",    prix:49,  emoji:"🌸", img:"https://qurios.tn/wp-content/uploads/2025/05/serum-rose-1.png",         objectifs:["Peau et beauté"],                    desc:"Sérum apaisant pour peaux sensibles et réactives.", badge:null },
-    { id:"qhydra",    nom:"Q-Hydra Liss Crème",        prix:49,  emoji:"💆", img:"https://qurios.tn/wp-content/uploads/2025/05/creme-vert-pack.png",      objectifs:["Peau et beauté"],                    desc:"Crème réparatrice peaux mixtes à grasses.", badge:null },
-    { id:"qsun",      nom:"Q-Sun Protect SPF50",       prix:49,  emoji:"🌞", img:"https://qurios.tn/wp-content/uploads/2025/05/ecran-invisible-rose.png", objectifs:["Peau et beauté"],                    desc:"Écran solaire invisible SPF50, protection optimale.", badge:null },
-    { id:"coffretD",  nom:"Coffret Dermaclear",        prix:149, emoji:"🎁", img:"https://qurios.tn/wp-content/uploads/2025/06/post-box-demaclear.png",   objectifs:["Peau et beauté"],                    desc:"Coffret soin complet gamme Dermaclear.", badge:"🎁 Pack" },
-    { id:"coffretS",  nom:"Coffret Dermasens",         prix:149, emoji:"🎁", img:"https://qurios.tn/wp-content/uploads/2025/06/post-box-demasens.png",    objectifs:["Peau et beauté"],                    desc:"Coffret soin complet gamme Dermasens.", badge:"🎁 Pack" },
-  ],
-  packs: [
-    { id:"duo1",  nom:"Duo Énergie & Vitalité",        prix:50,  promo:55,  emoji:"⚡", img:"https://qurios.tn/wp-content/uploads/2026/04/Untitled-600-x-600-px.png",     objectifs:["Plus d'énergie"],     desc:"Spiruline + Moringa — combo vitalité complet.", badge:"-9%" },
-    { id:"duo2",  nom:"Duo Immunité Forte",            prix:50,  promo:55,  emoji:"🛡️", img:"https://qurios.tn/wp-content/uploads/2026/04/Untitled-600-x-600-px-1.png",  objectifs:["Immunité"],            desc:"Zinc+VitC + Multivita — immunité renforcée.", badge:"-9%" },
-    { id:"duo3",  nom:"Duo Détox & Digestion",         prix:54,  promo:58,  emoji:"🌿", img:"https://qurios.tn/wp-content/uploads/2026/04/Gemini_Generated_Image_36fzaz36fzaz36fz-600x600.png", objectifs:["Digestion"], desc:"Digest Boost + Moringa — détox complète.", badge:"-7%" },
-    { id:"duo4",  nom:"Duo Sérénité & Relaxation",    prix:54,  promo:58,  emoji:"🌙", img:"https://qurios.tn/wp-content/uploads/2026/04/ChatGPT-Image-1-avr.-2026-16_52_30-600x600.png", objectifs:["Stress et sommeil"], desc:"Ashwagandha + Calma Boost — sérénité totale.", badge:"-7%" },
-    { id:"cure1", nom:"Cure 3 Mois Collagen Glow",    prix:457, promo:537, emoji:"✨", img:"https://qurios.tn/wp-content/uploads/2026/04/Untitled-design-12.png",         objectifs:["Peau et beauté"],     desc:"3 mois de collagène premium — résultats visibles garantis.", badge:"-15%" },
-    { id:"cure2", nom:"Cure 3 Mois Minci Boost",      prix:439, promo:477, emoji:"🔥", img:"https://qurios.tn/wp-content/uploads/2026/04/Untitled-design-13.png",         objectifs:["Perte de poids"],     desc:"3 mois de programme minceur intensif.", badge:"-8%" },
-    { id:"cure3", nom:"Cure 3 Mois Keratin Boost",    prix:439, promo:477, emoji:"💇", img:"https://qurios.tn/wp-content/uploads/2026/04/Untitled-design-14.png",         objectifs:["Cheveux & ongles"],  desc:"3 mois de traitement kératine intense.", badge:"-8%" },
-  ]
-};
+/* ══ SUPABASE CONFIG ══ */
+const SB_URL = "https://zixbpwwjweonianynvsq.supabase.co";
+const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InppeGJwd3dqd2VvbmlhbnludnNxIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAyNTYyOTQsImV4cCI6MjA5NTgzMjI5NH0.5ndkLhjM5v8xtW-BfenVwPEdQlQs_a6DWXXffCRD0N8";
 
-const ALL_PRODUCTS = [...CATALOGUE.complements, ...CATALOGUE.cosmetiques, ...CATALOGUE.packs];
+async function sb(table, opts={}) {
+  const { method="GET", filter="", body=null, select="*" } = opts;
+  let url = `${SB_URL}/rest/v1/${table}?select=${select}${filter}`;
+  const res = await fetch(url, {
+    method,
+    headers: {
+      "apikey": SB_KEY,
+      "Authorization": `Bearer ${SB_KEY}`,
+      "Content-Type": "application/json",
+      "Prefer": method==="POST" ? "return=representation" : method==="PATCH" ? "return=representation" : "",
+    },
+    body: body ? JSON.stringify(body) : null,
+  });
+  if (!res.ok) { const e = await res.text(); throw new Error(e); }
+  const text = await res.text();
+  return text ? JSON.parse(text) : [];
+}
 
+async function sbRpc(fn) {
+  const res = await fetch(`${SB_URL}/rest/v1/rpc/${fn}`, {
+    method: "POST",
+    headers: { "apikey": SB_KEY, "Authorization": `Bearer ${SB_KEY}`, "Content-Type": "application/json" },
+    body: "{}",
+  });
+  const t = await res.text();
+  return t ? JSON.parse(t) : null;
+}
+
+/* ══ CONSTANTES ══ */
 const OBJECTIFS_LIST = ["Perte de poids","Plus d'énergie","Peau et beauté","Stress et sommeil","Digestion","Cheveux & ongles","Immunité","Santé globale"];
+const OBJECTIF_EMOJI = {"Perte de poids":"🔥","Plus d'énergie":"⚡","Peau et beauté":"✨","Stress et sommeil":"🌙","Digestion":"🌿","Cheveux & ongles":"💇","Immunité":"🛡️","Santé globale":"🌍"};
+const STATUTS = ["Nouveau","Contacté","Confirmé","Expédié","Livré"];
+const STATUT_C = {Nouveau:{bg:"#e8f0ff",fg:"#2563eb"},Contacté:{bg:"#fff4e0",fg:"#c2740a"},Confirmé:{bg:"#e7f7ed",fg:"#0f9d58"},Expédié:{bg:"#ede9ff",fg:"#6d28d9"},Livré:{bg:"#e1f6f4",fg:"#0d8a7e"}};
 
-const OBJECTIF_EMOJI = {
-  "Perte de poids":"🔥","Plus d'énergie":"⚡","Peau et beauté":"✨",
-  "Stress et sommeil":"🌙","Digestion":"🌿","Cheveux & ongles":"💇",
-  "Immunité":"🛡️","Santé globale":"🌍"
-};
-
-const STATUT_C = {
-  Nouveau:{bg:"#e8f0ff",fg:"#2563eb"}, Contacté:{bg:"#fff4e0",fg:"#c2740a"},
-  Confirmé:{bg:"#e7f7ed",fg:"#0f9d58"}, Expédié:{bg:"#ede9ff",fg:"#6d28d9"},
-  Livré:{bg:"#e1f6f4",fg:"#0d8a7e"},
-};
-
-/* ══════ DATA MOCK DASHBOARD ══════ */
-const PROSPECTS_DATA = [
-  {nom:"Sonia Ben Ali",   tel:"22 123 456", objectif:"Peau et beauté",    produit:"Collagen Glow Boost",  date:"2026-05-31", statut:"Nouveau"},
-  {nom:"Karim Trabelsi",  tel:"98 552 014", objectif:"Perte de poids",    produit:"Minci Boost Premium",  date:"2026-05-31", statut:"Contacté"},
-  {nom:"Leïla Mansour",   tel:"55 880 221", objectif:"Stress et sommeil", produit:"Ashwagandha KSM-66",   date:"2026-05-30", statut:"Confirmé"},
-  {nom:"Yassine Khelifi", tel:"21 447 903", objectif:"Plus d'énergie",    produit:"Spiruline 60 gélules", date:"2026-05-30", statut:"Nouveau"},
-  {nom:"Amira Gharbi",    tel:"29 116 740", objectif:"Digestion",         produit:"Digest Boost®",        date:"2026-05-29", statut:"Contacté"},
-  {nom:"Mehdi Sassi",     tel:"50 903 118", objectif:"Peau et beauté",    produit:"Collagen Glow Boost",  date:"2026-05-29", statut:"Confirmé"},
-];
-const COMMANDES_DATA = [
-  {num:"CMD-1042", client:"Sonia Ben Ali",  produit:"Collagen Glow Boost",  qte:2, ville:"Tunis",  total:358, statut:"Confirmé"},
-  {num:"CMD-1041", client:"Leïla Mansour", produit:"Ashwagandha KSM-66",   qte:1, ville:"Sousse", total:29,  statut:"Expédié"},
-  {num:"CMD-1040", client:"Mehdi Sassi",   produit:"Collagen Glow Boost",  qte:3, ville:"Sfax",   total:537, statut:"Livré"},
-  {num:"CMD-1039", client:"Karim Trabelsi",produit:"Minci Boost Premium",  qte:2, ville:"Ariana", total:318, statut:"Nouveau"},
-  {num:"CMD-1038", client:"Amira Gharbi",  produit:"Digest Boost®",        qte:1, ville:"Nabeul", total:29,  statut:"Confirmé"},
-];
-const MOIS = ["Déc","Jan","Fév","Mar","Avr","Mai"];
-const P_MOIS = [22,31,28,45,52,70];
-const C_MOIS = [8,12,11,18,22,25];
-const PROD_TOP = [
-  {nom:"Collagen Glow Boost",val:42,color:"#e879a6"},
-  {nom:"Minci Boost Premium",val:31,color:"#1a7a56"},
-  {nom:"Keratin Boost",      val:24,color:"#7c6cf0"},
-  {nom:"Spiruline",          val:19,color:"#f0a93c"},
-  {nom:"Digest Boost",       val:14,color:"#3cb4f0"},
-];
-const BESOINS = [
-  {nom:"Peau et beauté",   val:34,color:"#e879a6"},
-  {nom:"Perte de poids",   val:26,color:"#1a7a56"},
-  {nom:"Stress/Sommeil",   val:18,color:"#7c6cf0"},
-  {nom:"Énergie",          val:13,color:"#f0a93c"},
-  {nom:"Digestion",        val:9, color:"#3cb4f0"},
-];
-
-/* ══════ UTILS ══════ */
+/* ══ UTILS ══ */
 function now(){const d=new Date();return d.getHours().toString().padStart(2,"0")+":"+d.getMinutes().toString().padStart(2,"0")}
-function Bold({t}){
-  return <span>{t.split(/(\*[^*]+\*)/g).map((p,i)=>p.startsWith("*")&&p.endsWith("*")?<strong key={i}>{p.slice(1,-1)}</strong>:<span key={i}>{p}</span>)}</span>;
-}
-function Badge({s}){
-  const c=STATUT_C[s]||{bg:"#eee",fg:"#555"};
-  return <span style={{padding:"3px 10px",borderRadius:20,fontSize:12,fontWeight:700,background:c.bg,color:c.fg}}>{s}</span>;
-}
+function Bold({t}){return <span>{t.split(/(\*[^*]+\*)/g).map((p,i)=>p.startsWith("*")&&p.endsWith("*")?<strong key={i}>{p.slice(1,-1)}</strong>:<span key={i}>{p}</span>)}</span>}
+function Badge({s}){const c=STATUT_C[s]||{bg:"#eee",fg:"#555"};return <span style={{padding:"3px 10px",borderRadius:20,fontSize:12,fontWeight:700,background:c.bg,color:c.fg}}>{s}</span>}
+function Spinner(){return <span className="spin">⟳</span>}
 
 /* ══════════════════════════════════════════
-   WHATSAPP CHAT
+   WHATSAPP
 ══════════════════════════════════════════ */
 function WA(){
   const [msgs,setMsgs]=useState([]);
@@ -134,203 +79,186 @@ function WA(){
   const [inputMode,setInputMode]=useState(false);
   const [typing,setTyping]=useState(false);
   const [panier,setPanier]=useState([]);
-  const [prodReco,setProdReco]=useState(null);
   const [showPanier,setShowPanier]=useState(false);
   const [prenom,setPrenom]=useState("");
+  const [produits,setProduits]=useState([]);
   const endRef=useRef(null);
 
-  useEffect(()=>{endRef.current?.scrollIntoView({behavior:"smooth"})},[msgs,opts,typing,showPanier]);
+  useEffect(()=>{endRef.current?.scrollIntoView({behavior:"smooth"})},[msgs,opts,typing]);
 
-  function bot(text){setMsgs(m=>[...m,{from:"bot",text,time:now(),anim:true}])}
+  // Charger produits depuis Supabase
+  useEffect(()=>{
+    sb("produits","*,categories(nom)").then(setProduits).catch(console.error);
+  },[]);
+
+  function bot(text){setMsgs(m=>[...m,{from:"bot",text,time:now()}])}
   function user(text){setMsgs(m=>[...m,{from:"user",text,time:now()}])}
   function delay(fn,d=700){setOpts([]);setTyping(true);setTimeout(()=>{setTyping(false);fn();},d)}
 
   function init(){
-    bot("Bonjour 👋\n\nBienvenue chez *Qurios* — compléments alimentaires & cosmétiques naturels certifiés.\n\nJe suis votre assistant. Comment puis-je vous aider ?");
+    bot("Bonjour 👋\n\nBienvenue chez *Qurios* — compléments alimentaires & cosmétiques naturels certifiés.\n\nComment puis-je vous aider ?");
     setOpts(["🔍 Trouver un produit adapté","🛒 Voir le catalogue","📦 Passer une commande","📲 Suivre ma commande","❓ FAQ"]);
   }
   useEffect(()=>{init();},[]);
 
   function reset(){
     setMsgs([]);setOpts([]);setStep("start");setInput("");
-    setInputMode(false);setTyping(false);setPanier([]);
-    setProdReco(null);setShowPanier(false);setPrenom("");
+    setInputMode(false);setTyping(false);setPanier([]);setShowPanier(false);setPrenom("");
     setTimeout(()=>init(),150);
   }
 
-  function totalPanier(){return panier.reduce((s,i)=>s+(i.prix*i.qte),0)}
-  function addPanier(prod){
-    setPanier(p=>{const ex=p.find(x=>x.id===prod.id);
-      return ex?p.map(x=>x.id===prod.id?{...x,qte:x.qte+1}:x):[...p,{...prod,qte:1}];});
-  }
-  function removeFromPanier(id){setPanier(p=>p.filter(x=>x.id!==id))}
-  function updateQte(id,delta){
-    setPanier(p=>p.map(x=>x.id===id?{...x,qte:Math.max(1,x.qte+delta)}:x));
-  }
+  const total=()=>panier.reduce((s,i)=>s+(i.prix*i.qte),0);
+  function addP(p){setPanier(prev=>{const ex=prev.find(x=>x.id===p.id);return ex?prev.map(x=>x.id===p.id?{...x,qte:x.qte+1}:x):[...prev,{...p,qte:1}]});}
+  function updQte(id,d){setPanier(p=>p.map(x=>x.id===id?{...x,qte:Math.max(1,x.qte+d)}:x))}
+  function delP(id){setPanier(p=>p.filter(x=>x.id!==id))}
 
-  function handleOpt(opt){
-    const label = opt.replace(/^[^\s]+\s/,""); // enlever l'emoji du début si menu principal
-    user(opt); setOpts([]);
-
-    /* ── Menu principal ── */
-    if(step==="start"){
-      if(opt.includes("Trouver")){
-        delay(()=>{bot("Quel est votre prénom ?");setInputMode(true);setStep("prenom");});
-      } else if(opt.includes("catalogue")){
-        delay(()=>{bot("Quelle catégorie vous intéresse ?");setOpts(["💊 Compléments alimentaires","🧴 Cosmétiques","🎁 Packs & Cures","⬅️ Retour"]);setStep("catalogue_cat");});
-      } else if(opt.includes("commande")&&opt.includes("Passer")){
-        if(panier.length>0){
-          delay(()=>{bot("Vous avez des articles dans votre panier ✅\n\nSouhaitez-vous commander le contenu de votre panier ou choisir d'autres produits ?");setOpts(["✅ Commander mon panier","🛍️ Modifier le panier","🔄 Nouveau choix"]);setStep("pre_order");});
-        } else {
-          delay(()=>{bot("Votre panier est vide. Commençons par choisir vos produits !");setOpts(["💊 Compléments alimentaires","🧴 Cosmétiques","🎁 Packs & Cures"]);setStep("catalogue_cat");});
-        }
-      } else if(opt.includes("Suivre")){
-        delay(()=>{bot("Indiquez votre numéro de commande (ex: CMD-1042) :");setInputMode(true);setStep("track");});
-      } else if(opt.includes("FAQ")){
-        delay(()=>{bot("❓ *Questions fréquentes*\n\n• 🚚 Livraison 24–72h partout en Tunisie\n• 💵 Paiement à la livraison disponible\n• ✅ Produits certifiés FSSC 22000 & GMP\n• 🔄 Retour sous 7 jours si insatisfait\n• 📞 Service client : +216 22 352 000");
-          setOpts(["🔍 Trouver un produit","🛒 Voir le catalogue","⬅️ Menu principal"]);setStep("faq");});
-      }
-      return;
-    }
-
-    /* ── FAQ → retour ── */
-    if(step==="faq"){reset();return;}
-
-    /* ── Catalogue catégorie ── */
-    if(step==="catalogue_cat"){
-      if(opt.includes("Retour")||opt.includes("Menu")){reset();return;}
-      let produits=[];
-      if(opt.includes("Compléments")) produits=CATALOGUE.complements;
-      else if(opt.includes("Cosmétiques")) produits=CATALOGUE.cosmetiques;
-      else if(opt.includes("Packs")) produits=CATALOGUE.packs;
-      delay(()=>{
-        bot(`Voici notre sélection ${opt.includes("Compléments")?"compléments alimentaires":opt.includes("Cosmétiques")?"cosmétiques":"packs & cures"} :\n\nCliquez sur un produit pour l'ajouter au panier 🛒`);
-        setStep("catalogue_show");
-        setTimeout(()=>{
-          setMsgs(m=>[...m,{from:"bot",type:"catalogue",items:produits,time:now()}]);
-        },100);
-      });
-      return;
-    }
-
-    /* ── Objectif ── */
-    if(step==="objectif"){
-      const obj=opt.replace(/^.\s/,"");
-      const recs=ALL_PRODUCTS.filter(p=>p.objectifs&&p.objectifs.includes(obj)).slice(0,4);
-      delay(()=>{
-        if(recs.length===0){
-          bot("Je n'ai pas trouvé de produit pour cet objectif. Consultez notre catalogue !");
-          setOpts(["🛒 Voir le catalogue","⬅️ Menu principal"]);setStep("start");
-        } else {
-          bot(`Super ${prenom} ! Pour *${obj}*, voici mes recommandations personnalisées :`);
-          setTimeout(()=>{
-            setMsgs(m=>[...m,{from:"bot",type:"catalogue",items:recs,time:now()}]);
-            setOpts(["🛒 Voir tout le catalogue","📦 Commander mon panier","⬅️ Menu principal"]);
-            setStep("post_reco");
-          },200);
-        }
-      });
-      return;
-    }
-
-    /* ── Post recommandation ── */
-    if(step==="post_reco"){
-      if(opt.includes("catalogue")){delay(()=>{bot("Quelle catégorie ?");setOpts(["💊 Compléments alimentaires","🧴 Cosmétiques","🎁 Packs & Cures"]);setStep("catalogue_cat");});}
-      else if(opt.includes("Commander")){goToOrder();}
-      else {reset();}
-      return;
-    }
-
-    /* ── Pre-order ── */
-    if(step==="pre_order"){
-      if(opt.includes("Commander mon panier")){goToOrder();}
-      else if(opt.includes("Modifier")){setShowPanier(true);setOpts([]);}
-      else {delay(()=>{bot("Quelle catégorie ?");setOpts(["💊 Compléments alimentaires","🧴 Cosmétiques","🎁 Packs & Cures"]);setStep("catalogue_cat");});}
-      return;
-    }
-
-    /* ── Catalogue show ── */
-    if(step==="catalogue_show"){
-      if(opt.includes("panier")||opt.includes("Commander")){goToOrder();}
-      else if(opt.includes("Retour")||opt.includes("Menu")){reset();}
-      else {delay(()=>{bot("Quelle catégorie ?");setOpts(["💊 Compléments alimentaires","🧴 Cosmétiques","🎁 Packs & Cures","⬅️ Menu principal"]);setStep("catalogue_cat");});}
-      return;
-    }
-
-    /* ── Action post-order ── */
-    if(step==="end"){reset();return;}
+  function showCat(cat){
+    const items = cat==="all" ? produits : produits.filter(p=>p.categories?.nom===cat);
+    delay(()=>{
+      bot(`Voici notre sélection *${cat==="all"?"complète":cat}* :\nCliquez sur un produit pour l'ajouter au panier 🛒`);
+      setStep("catalogue_show");
+      setTimeout(()=>setMsgs(m=>[...m,{from:"bot",type:"catalogue",items,time:now()}]),100);
+    });
   }
 
   function goToOrder(){
-    if(panier.length===0){
-      delay(()=>{bot("Votre panier est vide ! Ajoutez d'abord des produits.");
-        setOpts(["🛒 Voir le catalogue"]);setStep("catalogue_cat");});
-      return;
-    }
+    if(!panier.length){delay(()=>{bot("Votre panier est vide ! Ajoutez d'abord des produits.");setOpts(["🛒 Voir le catalogue"]);setStep("catalogue_cat");});return;}
     const recap=panier.map(i=>`• ${i.nom} x${i.qte} — ${(i.prix*i.qte).toFixed(3)} TND`).join("\n");
     delay(()=>{
-      bot(`🛒 *Récapitulatif de votre panier :*\n\n${recap}\n\n💰 *Total : ${totalPanier().toFixed(3)} TND*\n\nPour finaliser, donnez-moi vos informations de livraison :\n\n• Nom complet\n• Téléphone\n• Ville\n• Adresse complète`);
+      bot(`🛒 *Récapitulatif :*\n\n${recap}\n\n💰 *Total : ${total().toFixed(3)} TND*\n\nPour finaliser, donnez-moi :\n\n• Nom complet\n• Téléphone\n• Ville\n• Adresse complète`);
       setInputMode(true);setStep("order_info");
     });
   }
 
-  function handleSend(){
-    if(!input.trim())return;
-    const val=input.trim(); user(val); setInput(""); setInputMode(false);
+  // Enregistrer commande dans Supabase
+  async function saveCommande(infoText){
+    const lines=infoText.split("\n");
+    const get=(k)=>{const l=lines.find(x=>x.toLowerCase().includes(k));return l?l.split(":").slice(1).join(":").trim():""};
+    const numero = await sbRpc("next_commande_numero");
+    // Créer la commande
+    const [cmd] = await sb("commandes",{method:"POST",body:{
+      numero, client_nom:get("nom"), client_telephone:get("téléphone")||get("tel"),
+      client_ville:get("ville"), client_adresse:get("adresse"),
+      statut:"Nouveau", total:total()
+    }});
+    // Créer les items
+    for(const item of panier){
+      await sb("commande_items",{method:"POST",body:{
+        commande_id:cmd.id, produit_id:item.id,
+        produit_nom:item.nom, prix_unitaire:item.prix, quantite:item.qte
+      }});
+    }
+    // Enregistrer le prospect
+    const obj = panier[0]?.objectifs?.[0]||"";
+    await sb("prospects",{method:"POST",body:{
+      nom:get("nom"), telephone:get("téléphone")||get("tel"),
+      objectif:obj, produit_recommande:panier.map(i=>i.nom).join(", "), statut:"Nouveau"
+    }});
+    return numero;
+  }
 
+  function handleOpt(opt){
+    user(opt);setOpts([]);
+    if(step==="start"){
+      if(opt.includes("Trouver")){delay(()=>{bot("Quel est votre prénom ?");setInputMode(true);setStep("prenom");});}
+      else if(opt.includes("catalogue")){delay(()=>{bot("Quelle catégorie ?");setOpts(["💊 Compléments alimentaires","🧴 Cosmétiques","🎁 Packs & Cures"]);setStep("catalogue_cat");});}
+      else if(opt.includes("Passer")){panier.length>0?delay(()=>{bot("Vous avez des articles dans votre panier ✅");setOpts(["✅ Commander mon panier","🛍️ Modifier le panier","🔄 Nouveau choix"]);setStep("pre_order");}):delay(()=>{bot("Quelle catégorie ?");setOpts(["💊 Compléments alimentaires","🧴 Cosmétiques","🎁 Packs & Cures"]);setStep("catalogue_cat");});}
+      else if(opt.includes("Suivre")){delay(()=>{bot("Indiquez votre numéro de commande (ex: CMD-1044) :");setInputMode(true);setStep("track");});}
+      else{delay(()=>{bot("❓ *FAQ*\n\n• 🚚 Livraison 24–72h partout en Tunisie\n• 💵 Paiement à la livraison\n• ✅ Certifiés FSSC 22000 & GMP Halal\n• 📞 +216 22 352 000");setOpts(["🛒 Voir le catalogue","⬅️ Menu principal"]);});}
+      return;
+    }
+    if(step==="catalogue_cat"){
+      if(opt.includes("Compléments")) showCat("Compléments alimentaires");
+      else if(opt.includes("Cosmétiques")) showCat("Cosmétiques");
+      else if(opt.includes("Packs")) showCat("Packs & Cures");
+      else reset();
+      return;
+    }
+    if(step==="objectif"){
+      const obj=opt.replace(/^.\s/,"");
+      const recs=produits.filter(p=>p.objectifs?.includes(obj)).slice(0,4);
+      delay(()=>{
+        bot(`Pour *${obj}*, voici mes recommandations ${prenom?`pour vous ${prenom}`:""}:`);
+        setTimeout(()=>{setMsgs(m=>[...m,{from:"bot",type:"catalogue",items:recs,time:now()}]);
+          setOpts(["📦 Commander mon panier","🛒 Voir tout le catalogue","⬅️ Menu principal"]);setStep("post_reco");},200);
+      });
+      return;
+    }
+    if(step==="post_reco"||step==="catalogue_show"){
+      if(opt.includes("Commander")) goToOrder();
+      else if(opt.includes("catalogue")) {delay(()=>{bot("Quelle catégorie ?");setOpts(["💊 Compléments alimentaires","🧴 Cosmétiques","🎁 Packs & Cures"]);setStep("catalogue_cat");});}
+      else reset();
+      return;
+    }
+    if(step==="pre_order"){
+      if(opt.includes("Commander mon panier")) goToOrder();
+      else if(opt.includes("Modifier")){setShowPanier(true);}
+      else {delay(()=>{bot("Quelle catégorie ?");setOpts(["💊 Compléments alimentaires","🧴 Cosmétiques","🎁 Packs & Cures"]);setStep("catalogue_cat");});}
+      return;
+    }
+    if(step==="end") reset();
+  }
+
+  async function handleSend(){
+    if(!input.trim())return;
+    const val=input.trim();user(val);setInput("");setInputMode(false);
     if(step==="prenom"){
       setPrenom(val);
-      delay(()=>{
-        bot(`Enchanté *${val}* 😊\n\nQuel est votre objectif principal ?`);
-        setOpts(OBJECTIFS_LIST.map(o=>`${OBJECTIF_EMOJI[o]} ${o}`));
-        setStep("objectif");
-      });
+      delay(()=>{bot(`Enchanté *${val}* 😊\n\nQuel est votre objectif principal ?`);
+        setOpts(OBJECTIFS_LIST.map(o=>`${OBJECTIF_EMOJI[o]} ${o}`));setStep("objectif");});
     } else if(step==="order_info"){
-      delay(()=>{
-        const num="CMD-"+(1043+Math.floor(Math.random()*10));
-        bot(`✅ *Commande ${num} enregistrée !*\n\nMerci pour votre confiance 🙏\n\nNotre équipe vous contacte dans les *2h* pour confirmer et organiser la livraison.\n\n📦 Livraison sous 24–72h\n💵 Paiement à la réception`);
-        setPanier([]);
-        setOpts(["↺ Nouvelle commande"]);
-        setStep("end");
-      },1000);
+      setTyping(true);
+      try {
+        const num = await saveCommande(val);
+        setTyping(false);
+        bot(`✅ *Commande ${num} enregistrée !*\n\nMerci ${prenom} 🙏\n\nNotre équipe vous contacte dans les *2h* pour confirmer.\n\n📦 Livraison 24–72h · 💵 Paiement à la réception`);
+        setPanier([]);setOpts(["↺ Nouvelle commande"]);setStep("end");
+      } catch(e){
+        setTyping(false);
+        bot("❌ Erreur lors de l'enregistrement. Réessayez ou appelez le +216 22 352 000.");
+        setOpts(["🔄 Réessayer","⬅️ Menu principal"]);
+      }
     } else if(step==="track"){
-      delay(()=>{
-        const found=COMMANDES_DATA.find(c=>c.num.toLowerCase()===val.toLowerCase());
-        if(found){
-          bot(`📦 *${found.num}*\nClient : ${found.client}\nProduit : ${found.produit}\nStatut : *${found.statut}* ${found.statut==="Livré"?"✅":found.statut==="Expédié"?"🚚":"⏳"}`);
+      setTyping(true);
+      try {
+        const res = await sb("commandes",{filter:`&numero=eq.${val.toUpperCase()}&select=*,commande_items(*)`});
+        setTyping(false);
+        if(res.length){
+          const c=res[0];
+          bot(`📦 *${c.numero}*\nClient : ${c.client_nom}\nVille : ${c.client_ville}\nTotal : ${parseFloat(c.total).toFixed(3)} TND\nStatut : *${c.statut}* ${c.statut==="Livré"?"✅":c.statut==="Expédié"?"🚚":"⏳"}`);
         } else {
-          bot(`Commande *${val.toUpperCase()}* introuvable.\nVérifiez le numéro ou contactez-nous au *+216 22 352 000*.`);
+          bot(`Commande *${val.toUpperCase()}* introuvable.\nVérifiez le numéro ou appelez le *+216 22 352 000*.`);
         }
-        setOpts(["↺ Menu principal"]);setStep("end");
-      });
+      } catch { setTyping(false); bot("Erreur de connexion. Réessayez."); }
+      setOpts(["↺ Menu principal"]);setStep("end");
     }
   }
 
-  function ProductCard({p}){
+  function PCard({p}){
     const inCart=panier.find(x=>x.id===p.id);
     return(
-      <div style={{background:"#fff",borderRadius:12,overflow:"hidden",boxShadow:"0 2px 8px rgba(0,0,0,.08)",animation:"fadeIn .3s ease",marginBottom:8}}>
+      <div style={{background:"#fff",borderRadius:12,overflow:"hidden",boxShadow:"0 2px 8px rgba(0,0,0,.08)",marginBottom:8,animation:"fadeIn .3s ease"}}>
         <div style={{display:"flex",gap:10,padding:10}}>
-          <img src={p.img} alt={p.nom} style={{width:64,height:64,borderRadius:8,objectFit:"cover",flexShrink:0}} onError={e=>e.target.style.display="none"}/>
+          <img src={p.img} alt={p.nom} style={{width:64,height:64,borderRadius:8,objectFit:"cover",flexShrink:0,background:"#f0f4f2"}} onError={e=>e.target.style.display="none"}/>
           <div style={{flex:1,minWidth:0}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",gap:4}}>
+            <div style={{display:"flex",justifyContent:"space-between",gap:4}}>
               <div style={{fontSize:13,fontWeight:700,lineHeight:1.3}}>{p.nom}</div>
-              {p.badge&&<span style={{background:"#fff0f5",color:"#c2186a",fontSize:10,fontWeight:700,padding:"1px 6px",borderRadius:10,flexShrink:0}}>{p.badge}</span>}
+              {p.badge&&<span style={{background:"#fff0f5",color:"#c2186a",fontSize:10,fontWeight:700,padding:"1px 6px",borderRadius:10,flexShrink:0,whiteSpace:"nowrap"}}>{p.badge}</span>}
             </div>
-            <div style={{fontSize:11,color:"#666",marginTop:2,lineHeight:1.4}}>{p.desc}</div>
+            <div style={{fontSize:11,color:"#666",marginTop:2,lineHeight:1.4}}>{p.description}</div>
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginTop:6}}>
               <div>
-                {p.promo&&<span style={{fontSize:10,color:"#999",textDecoration:"line-through",marginRight:4}}>{p.promo} TND</span>}
-                <span style={{fontWeight:800,color:"#1a7a56",fontSize:14}}>{p.prix} TND</span>
+                {p.prix_promo&&<span style={{fontSize:10,color:"#999",textDecoration:"line-through",marginRight:4}}>{p.prix_promo} TND</span>}
+                <span style={{fontWeight:800,color:"#1a7a56",fontSize:14}}>{parseFloat(p.prix).toFixed(3)} TND</span>
               </div>
               {inCart?(
                 <div style={{display:"flex",alignItems:"center",gap:6}}>
-                  <button onClick={()=>updateQte(p.id,-1)} style={{width:24,height:24,borderRadius:"50%",border:"1.5px solid #1a7a56",background:"#fff",color:"#1a7a56",fontWeight:700,fontSize:14,display:"grid",placeItems:"center"}}>−</button>
-                  <span style={{fontWeight:700,fontSize:13,minWidth:16,textAlign:"center"}}>{inCart.qte}</span>
-                  <button onClick={()=>updateQte(p.id,1)} style={{width:24,height:24,borderRadius:"50%",border:"none",background:"#1a7a56",color:"#fff",fontWeight:700,fontSize:14,display:"grid",placeItems:"center"}}>+</button>
+                  <button onClick={()=>updQte(p.id,-1)} style={{width:24,height:24,borderRadius:"50%",border:"1.5px solid #1a7a56",background:"#fff",color:"#1a7a56",fontWeight:700,fontSize:14,display:"grid",placeItems:"center"}}>−</button>
+                  <span style={{fontWeight:700,minWidth:16,textAlign:"center"}}>{inCart.qte}</span>
+                  <button onClick={()=>updQte(p.id,1)} style={{width:24,height:24,borderRadius:"50%",border:"none",background:"#1a7a56",color:"#fff",fontWeight:700,fontSize:14,display:"grid",placeItems:"center"}}>+</button>
                 </div>
               ):(
-                <button onClick={()=>{addPanier(p);bot(`✅ *${p.nom}* ajouté au panier !`);}} style={{background:"#1a7a56",color:"#fff",border:"none",padding:"5px 12px",borderRadius:8,fontSize:12,fontWeight:700}}>+ Panier</button>
+                <button onClick={()=>{addP(p);bot(`✅ *${p.nom}* ajouté au panier !`);}} style={{background:"#1a7a56",color:"#fff",border:"none",padding:"5px 12px",borderRadius:8,fontSize:12,fontWeight:700}}>+ Panier</button>
               )}
             </div>
           </div>
@@ -341,133 +269,74 @@ function WA(){
 
   return(
     <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:14}}>
-      <div style={{width:360,background:"#111b17",borderRadius:34,padding:"10px 10px 0",boxShadow:"0 30px 80px rgba(0,0,0,.35),0 0 0 1px rgba(255,255,255,.06)",display:"flex",flexDirection:"column",overflow:"hidden",height:680}}>
-        {/* Status bar */}
-        <div style={{display:"flex",justifyContent:"space-between",padding:"4px 16px 8px",color:"rgba(255,255,255,.6)",fontSize:11}}>
-          <span>9:41</span><span>●●● 5G 🔋</span>
-        </div>
-        {/* Header */}
+      <div style={{width:360,background:"#111b17",borderRadius:34,padding:"10px 10px 0",boxShadow:"0 30px 80px rgba(0,0,0,.35)",display:"flex",flexDirection:"column",overflow:"hidden",height:680,position:"relative"}}>
+        <div style={{display:"flex",justifyContent:"space-between",padding:"4px 16px 8px",color:"rgba(255,255,255,.6)",fontSize:11}}><span>9:41</span><span>5G 🔋</span></div>
         <div style={{background:"#075e54",display:"flex",alignItems:"center",gap:11,padding:"10px 14px 12px"}}>
           <div style={{width:38,height:38,borderRadius:"50%",background:"linear-gradient(135deg,#25d366,#0d8a7e)",display:"grid",placeItems:"center",fontWeight:800,color:"#fff",fontSize:18,flexShrink:0}}>Q</div>
-          <div style={{flex:1}}>
-            <div style={{color:"#fff",fontWeight:700,fontSize:14.5,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>Qurios</div>
-            <div style={{color:"rgba(255,255,255,.75)",fontSize:11}}>Assistant • en ligne</div>
-          </div>
-          {panier.length>0&&(
-            <button onClick={()=>setShowPanier(v=>!v)} style={{background:"#25d366",border:"none",borderRadius:20,padding:"4px 10px",color:"#fff",fontSize:12,fontWeight:700,display:"flex",alignItems:"center",gap:4}}>
-              🛒 {panier.length} • {totalPanier().toFixed(0)} TND
-            </button>
-          )}
+          <div style={{flex:1}}><div style={{color:"#fff",fontWeight:700,fontSize:14.5}}>Qurios</div><div style={{color:"rgba(255,255,255,.75)",fontSize:11}}>Assistant • en ligne</div></div>
+          {panier.length>0&&<button onClick={()=>setShowPanier(v=>!v)} style={{background:"#25d366",border:"none",borderRadius:20,padding:"4px 10px",color:"#fff",fontSize:12,fontWeight:700}}>🛒 {panier.length} • {total().toFixed(0)} TND</button>}
         </div>
 
         {/* Panier overlay */}
         {showPanier&&(
           <div style={{position:"absolute",zIndex:50,inset:0,background:"rgba(0,0,0,.5)",display:"flex",alignItems:"flex-end"}}>
-            <div style={{background:"#fff",borderRadius:"20px 20px 0 0",padding:18,width:"100%",maxHeight:"70%",overflowY:"auto",animation:"slideUp .3s ease"}}>
+            <div style={{background:"#fff",borderRadius:"20px 20px 0 0",padding:18,width:"100%",maxHeight:"75%",overflowY:"auto"}}>
               <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:14}}>
-                <span style={{fontWeight:800,fontSize:16,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>🛒 Mon Panier</span>
+                <span style={{fontWeight:800,fontSize:16}}>🛒 Mon Panier</span>
                 <button onClick={()=>setShowPanier(false)} style={{border:"none",background:"#f0f4f2",borderRadius:20,padding:"4px 12px",fontWeight:600}}>Fermer</button>
               </div>
               {panier.map(i=>(
                 <div key={i.id} style={{display:"flex",alignItems:"center",gap:10,padding:"8px 0",borderBottom:"1px solid #f0f4f2"}}>
-                  <div style={{flex:1}}>
-                    <div style={{fontWeight:600,fontSize:13}}>{i.nom}</div>
-                    <div style={{fontSize:12,color:"#666"}}>{i.prix} TND / unité</div>
-                  </div>
-                  <div style={{display:"flex",alignItems:"center",gap:8}}>
-                    <button onClick={()=>updateQte(i.id,-1)} style={{width:26,height:26,borderRadius:"50%",border:"1.5px solid #ddd",background:"#fff",fontWeight:700}}>−</button>
+                  <div style={{flex:1}}><div style={{fontWeight:600,fontSize:13}}>{i.nom}</div><div style={{fontSize:12,color:"#666"}}>{parseFloat(i.prix).toFixed(3)} TND</div></div>
+                  <div style={{display:"flex",alignItems:"center",gap:6}}>
+                    <button onClick={()=>updQte(i.id,-1)} style={{width:26,height:26,borderRadius:"50%",border:"1.5px solid #ddd",background:"#fff",fontWeight:700}}>−</button>
                     <span style={{fontWeight:700,minWidth:16,textAlign:"center"}}>{i.qte}</span>
-                    <button onClick={()=>updateQte(i.id,1)} style={{width:26,height:26,borderRadius:"50%",border:"none",background:"#1a7a56",color:"#fff",fontWeight:700}}>+</button>
-                    <button onClick={()=>removeFromPanier(i.id)} style={{border:"none",background:"none",color:"#e53e3e",fontSize:18,padding:"0 4px"}}>×</button>
+                    <button onClick={()=>updQte(i.id,1)} style={{width:26,height:26,borderRadius:"50%",border:"none",background:"#1a7a56",color:"#fff",fontWeight:700}}>+</button>
+                    <button onClick={()=>delP(i.id)} style={{border:"none",background:"none",color:"#e53e3e",fontSize:18}}>×</button>
                   </div>
-                  <div style={{fontWeight:700,color:"#1a7a56",fontSize:13,minWidth:60,textAlign:"right"}}>{(i.prix*i.qte).toFixed(3)}</div>
+                  <div style={{fontWeight:700,color:"#1a7a56",fontSize:13,minWidth:65,textAlign:"right"}}>{(parseFloat(i.prix)*i.qte).toFixed(3)}</div>
                 </div>
               ))}
-              <div style={{display:"flex",justifyContent:"space-between",marginTop:14,fontWeight:800,fontSize:15}}>
-                <span>Total</span><span style={{color:"#1a7a56"}}>{totalPanier().toFixed(3)} TND</span>
-              </div>
-              <button onClick={()=>{setShowPanier(false);goToOrder();}} style={{width:"100%",background:"#1a7a56",color:"#fff",border:"none",padding:"13px",borderRadius:12,fontWeight:700,fontSize:15,marginTop:14}}>
-                ✅ Commander maintenant
-              </button>
+              <div style={{display:"flex",justifyContent:"space-between",marginTop:14,fontWeight:800,fontSize:15}}><span>Total</span><span style={{color:"#1a7a56"}}>{total().toFixed(3)} TND</span></div>
+              <button onClick={()=>{setShowPanier(false);goToOrder();}} style={{width:"100%",background:"#1a7a56",color:"#fff",border:"none",padding:13,borderRadius:12,fontWeight:700,fontSize:15,marginTop:14}}>✅ Commander</button>
             </div>
           </div>
         )}
 
-        {/* Messages */}
         <div style={{flex:1,background:"#e5ddd5",overflowY:"auto",padding:"12px 10px",display:"flex",flexDirection:"column",gap:6}}>
-          {msgs.map((m,i)=>(
+          {msgs.map((m,i)=>
             m.type==="catalogue"?(
-              <div key={i} style={{alignSelf:"flex-start",width:"95%",animation:"fadeIn .4s ease"}}>
-                {m.items.map(p=><ProductCard key={p.id} p={p}/>)}
-                <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:6}}>
-                  <button onClick={()=>{if(panier.length>0)goToOrder();}} style={{background:"#1a7a56",color:"#fff",border:"none",padding:"7px 12px",borderRadius:8,fontSize:12,fontWeight:700,opacity:panier.length>0?1:0.5}}>
-                    📦 Commander le panier ({panier.length})
-                  </button>
-                  <button onClick={()=>{user("⬅️ Retour");delay(()=>{bot("Quelle catégorie ?");setOpts(["💊 Compléments alimentaires","🧴 Cosmétiques","🎁 Packs & Cures","⬅️ Menu principal"]);setStep("catalogue_cat");});}} style={{background:"#fff",border:"1.5px solid #ddd",padding:"7px 12px",borderRadius:8,fontSize:12,fontWeight:600}}>
-                    ⬅️ Retour
-                  </button>
+              <div key={i} style={{alignSelf:"flex-start",width:"96%",animation:"fadeIn .4s ease"}}>
+                {m.items.map(p=><PCard key={p.id} p={p}/>)}
+                <div style={{display:"flex",gap:6,flexWrap:"wrap",marginTop:4}}>
+                  <button onClick={()=>{if(panier.length>0)goToOrder();}} style={{background:"#1a7a56",color:"#fff",border:"none",padding:"7px 12px",borderRadius:8,fontSize:12,fontWeight:700,opacity:panier.length>0?1:0.5}}>📦 Commander ({panier.length})</button>
+                  <button onClick={()=>{user("⬅️ Retour");delay(()=>{bot("Quelle catégorie ?");setOpts(["💊 Compléments alimentaires","🧴 Cosmétiques","🎁 Packs & Cures"]);setStep("catalogue_cat");});}} style={{background:"#fff",border:"1.5px solid #ddd",padding:"7px 12px",borderRadius:8,fontSize:12,fontWeight:600}}>⬅️ Retour</button>
                 </div>
               </div>
             ):(
-              <div key={i} style={{
-                maxWidth:"84%",padding:"8px 11px 18px",borderRadius:10,fontSize:13,lineHeight:1.45,
-                position:"relative",boxShadow:"0 1px 2px rgba(0,0,0,.1)",
-                alignSelf:m.from==="bot"?"flex-start":"flex-end",
-                background:m.from==="bot"?"#fff":"#dcf8c6",
-                borderTopLeftRadius:m.from==="bot"?2:10,
-                borderTopRightRadius:m.from==="user"?2:10,
-                animation:"fadeIn .3s ease",
-              }}>
+              <div key={i} style={{maxWidth:"84%",padding:"8px 11px 18px",borderRadius:10,fontSize:13,lineHeight:1.45,position:"relative",boxShadow:"0 1px 2px rgba(0,0,0,.1)",alignSelf:m.from==="bot"?"flex-start":"flex-end",background:m.from==="bot"?"#fff":"#dcf8c6",borderTopLeftRadius:m.from==="bot"?2:10,borderTopRightRadius:m.from==="user"?2:10,animation:"fadeIn .3s ease"}}>
                 <span style={{whiteSpace:"pre-wrap"}}><Bold t={m.text}/></span>
                 <span style={{position:"absolute",bottom:3,right:9,fontSize:9,color:"#7a857f"}}>{m.time}</span>
               </div>
             )
-          ))}
-          {typing&&(
-            <div style={{alignSelf:"flex-start",background:"#fff",borderRadius:10,padding:"10px 14px",boxShadow:"0 1px 2px rgba(0,0,0,.08)"}}>
-              <span style={{display:"flex",gap:4}}>
-                {[0,1,2].map(i=><span key={i} style={{width:7,height:7,borderRadius:"50%",background:"#aaa",display:"inline-block",animation:`bounce 1.2s ${i*0.2}s infinite`}}/>)}
-              </span>
-            </div>
           )}
-          {opts.length>0&&(
-            <div style={{display:"flex",flexDirection:"column",gap:5,alignSelf:"flex-start",maxWidth:"90%",marginTop:2}}>
-              {opts.map(o=>(
-                <button key={o} onClick={()=>handleOpt(o)} style={{background:"#fff",border:"1.5px solid #b2dfce",color:"#075e54",padding:"9px 13px",borderRadius:10,fontSize:12.5,textAlign:"left",fontWeight:600,fontFamily:"'DM Sans',sans-serif",animation:"fadeIn .2s ease"}}>
-                  {o}
-                </button>
-              ))}
-            </div>
-          )}
+          {typing&&<div style={{alignSelf:"flex-start",background:"#fff",borderRadius:10,padding:"10px 14px",boxShadow:"0 1px 2px rgba(0,0,0,.08)"}}><span style={{display:"flex",gap:4}}>{[0,1,2].map(i=><span key={i} style={{width:7,height:7,borderRadius:"50%",background:"#aaa",display:"inline-block",animation:`bounce 1.2s ${i*0.2}s infinite`}}/>)}</span></div>}
+          {opts.length>0&&<div style={{display:"flex",flexDirection:"column",gap:5,alignSelf:"flex-start",maxWidth:"90%",marginTop:2}}>{opts.map(o=><button key={o} onClick={()=>handleOpt(o)} style={{background:"#fff",border:"1.5px solid #b2dfce",color:"#075e54",padding:"9px 13px",borderRadius:10,fontSize:12.5,textAlign:"left",fontWeight:600,animation:"fadeIn .2s ease"}}>{o}</button>)}</div>}
           <div ref={endRef}/>
         </div>
 
-        {/* Input */}
         <div style={{display:"flex",alignItems:"flex-end",gap:7,padding:"8px 8px 10px",background:"#f0f0f0",borderTop:"1px solid #ddd"}}>
           {inputMode?(
-            <>
-              <textarea value={input} onChange={e=>setInput(e.target.value)}
-                onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();handleSend()}}}
-                placeholder="Votre message…" rows={step==="order_info"?4:1}
-                style={{flex:1,border:"none",borderRadius:20,padding:"9px 14px",fontSize:13,resize:"none",outline:"none",fontFamily:"'DM Sans',sans-serif",maxHeight:100}}/>
-              <button onClick={handleSend} style={{width:38,height:38,borderRadius:"50%",border:"none",background:"#075e54",color:"#fff",fontSize:16,display:"grid",placeItems:"center",flexShrink:0}}>➤</button>
-            </>
+            <><textarea value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();handleSend()}}} placeholder="Votre message…" rows={step==="order_info"?4:1} style={{flex:1,border:"none",borderRadius:20,padding:"9px 14px",fontSize:13,resize:"none",outline:"none",fontFamily:"'DM Sans',sans-serif",maxHeight:100}}/><button onClick={handleSend} style={{width:38,height:38,borderRadius:"50%",border:"none",background:"#075e54",color:"#fff",fontSize:16,display:"grid",placeItems:"center",flexShrink:0}}>➤</button></>
           ):(
-            <div style={{flex:1,background:"#fff",borderRadius:20,padding:"9px 14px",fontSize:12.5,color:"#9aa0a6"}}>
-              {step==="catalogue_show"?"Ajoutez des produits au panier ↑":"Choisissez une option ci-dessus…"}
-            </div>
+            <div style={{flex:1,background:"#fff",borderRadius:20,padding:"9px 14px",fontSize:12.5,color:"#9aa0a6"}}>Choisissez une option…</div>
           )}
         </div>
         {step==="order_info"&&inputMode&&(
-          <button onClick={()=>setInput("Nom : Sonia Ben Ali\nTéléphone : 22 123 456\nVille : Tunis\nAdresse : Lac 2, Rue du Jasmin")}
-            style={{background:"#128c7e",color:"#fff",border:"none",padding:"7px",fontSize:11.5,fontFamily:"'DM Sans',sans-serif"}}>
-            📋 Remplir avec un exemple
-          </button>
+          <button onClick={()=>setInput("Nom : Sonia Ben Ali\nTéléphone : 22 123 456\nVille : Tunis\nAdresse : Lac 2, Rue du Jasmin")} style={{background:"#128c7e",color:"#fff",border:"none",padding:"7px",fontSize:11.5}}>📋 Exemple</button>
         )}
       </div>
-      <button onClick={reset} style={{background:"#fff",border:"1.5px solid #c8d8d2",padding:"9px 20px",borderRadius:10,fontSize:13,fontWeight:600,color:"#2c3a35",boxShadow:"0 2px 8px rgba(0,0,0,.06)"}}>
-        ↺ Recommencer la démo
-      </button>
+      <button onClick={reset} style={{background:"#fff",border:"1.5px solid #c8d8d2",padding:"9px 20px",borderRadius:10,fontSize:13,fontWeight:600,color:"#2c3a35"}}>↺ Recommencer</button>
     </div>
   );
 }
@@ -475,219 +344,222 @@ function WA(){
 /* ══════════════════════════════════════════
    DASHBOARD
 ══════════════════════════════════════════ */
-function StatCard({label,value,sub,color}){
-  return(
-    <div style={{background:"#fff",borderRadius:16,padding:"22px 22px 18px",position:"relative",overflow:"hidden",boxShadow:"0 2px 12px rgba(0,0,0,.05)"}}>
-      <div style={{position:"absolute",top:0,left:0,right:0,height:4,background:color,borderRadius:"16px 16px 0 0"}}/>
-      <div style={{fontSize:36,fontWeight:800,fontFamily:"'Plus Jakarta Sans',sans-serif",color,lineHeight:1}}>{value}</div>
-      <div style={{fontSize:13,color:"#5a6661",marginTop:6,fontWeight:500}}>{label}</div>
-      {sub&&<div style={{fontSize:12,color:"#0f9d58",marginTop:8,fontWeight:700}}>▲ {sub}</div>}
-    </div>
-  );
-}
-function BarChart(){
-  const max=Math.max(...P_MOIS,...C_MOIS)*1.2;
-  return(
-    <div>
-      <div style={{display:"flex",gap:18,fontSize:12,color:"#6b7875",marginBottom:14}}>
-        <span><i style={{display:"inline-block",width:10,height:10,borderRadius:3,background:"#1a7a56",marginRight:5}}/> Prospects</span>
-        <span><i style={{display:"inline-block",width:10,height:10,borderRadius:3,background:"#9be3c4",marginRight:5}}/> Commandes</span>
-      </div>
-      <div style={{display:"flex",alignItems:"flex-end",gap:10,height:160}}>
-        {MOIS.map((l,i)=>(
-          <div key={l} style={{flex:1,display:"flex",flexDirection:"column",alignItems:"center",height:"100%"}}>
-            <div style={{flex:1,display:"flex",alignItems:"flex-end",gap:3,width:"100%",justifyContent:"center"}}>
-              <div style={{width:12,background:"#1a7a56",height:`${(P_MOIS[i]/max)*100}%`,borderRadius:"3px 3px 0 0"}}/>
-              <div style={{width:12,background:"#9be3c4",height:`${(C_MOIS[i]/max)*100}%`,borderRadius:"3px 3px 0 0"}}/>
-            </div>
-            <div style={{fontSize:11,color:"#6b7875",marginTop:6}}>{l}</div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-function HBar(){
-  const max=Math.max(...PROD_TOP.map(d=>d.val));
-  return(
-    <div style={{display:"flex",flexDirection:"column",gap:14}}>
-      {PROD_TOP.map(d=>(
-        <div key={d.nom}>
-          <div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:5}}>
-            <span style={{fontWeight:500}}>{d.nom}</span>
-            <span style={{fontWeight:700,color:d.color}}>{d.val}</span>
-          </div>
-          <div style={{background:"#eef2f0",borderRadius:6,height:10,overflow:"hidden"}}>
-            <div style={{width:`${(d.val/max)*100}%`,height:"100%",background:d.color,borderRadius:6}}/>
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-function Donut(){
-  const total=BESOINS.reduce((s,d)=>s+d.val,0);
-  let acc=0;
-  const grad=BESOINS.map(d=>{const s=(acc/total)*360;acc+=d.val;const e=(acc/total)*360;return `${d.color} ${s}deg ${e}deg`;}).join(",");
-  return(
-    <div style={{display:"flex",gap:28,alignItems:"center",flexWrap:"wrap"}}>
-      <div style={{width:140,height:140,borderRadius:"50%",background:`conic-gradient(${grad})`,position:"relative",flexShrink:0,boxShadow:"0 4px 20px rgba(0,0,0,.1)"}}>
-        <div style={{position:"absolute",inset:30,background:"#fff",borderRadius:"50%",display:"grid",placeItems:"center",textAlign:"center"}}>
-          <div><div style={{fontSize:22,fontWeight:800,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>{total}</div><div style={{fontSize:10,color:"#9aa5a0"}}>clients</div></div>
-        </div>
-      </div>
-      <div style={{display:"flex",flexDirection:"column",gap:9}}>
-        {BESOINS.map(d=>(
-          <div key={d.nom} style={{display:"flex",alignItems:"center",gap:8,fontSize:13}}>
-            <i style={{display:"inline-block",width:10,height:10,borderRadius:3,background:d.color,flexShrink:0}}/>
-            <span>{d.nom}</span>
-            <strong style={{marginLeft:"auto",paddingLeft:12,color:d.color}}>{Math.round(d.val/total*100)}%</strong>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-/* ── Carte mobile pour tableaux ── */
-function ProspectCard({p}){
-  return(
-    <div style={{background:"#fff",borderRadius:14,padding:16,boxShadow:"0 2px 8px rgba(0,0,0,.06)",marginBottom:10,border:"1px solid #eef2f0"}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
-        <div>
-          <div style={{fontWeight:700,fontSize:15}}>{p.nom}</div>
-          <div style={{color:"#5a6661",fontSize:13,marginTop:2}}>📞 {p.tel}</div>
-        </div>
-        <Badge s={p.statut}/>
-      </div>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
-        <div style={{background:"#f8faf9",borderRadius:8,padding:"8px 10px"}}>
-          <div style={{fontSize:10,color:"#9aa5a0",marginBottom:2,textTransform:"uppercase",letterSpacing:.5}}>Objectif</div>
-          <div style={{fontSize:13,fontWeight:600}}>{p.objectif}</div>
-        </div>
-        <div style={{background:"#f8faf9",borderRadius:8,padding:"8px 10px"}}>
-          <div style={{fontSize:10,color:"#9aa5a0",marginBottom:2,textTransform:"uppercase",letterSpacing:.5}}>Produit</div>
-          <div style={{fontSize:12,fontWeight:600}}>{p.produit}</div>
-        </div>
-      </div>
-      <div style={{fontSize:11,color:"#9aa5a0",marginTop:8,textAlign:"right"}}>{p.date}</div>
-    </div>
-  );
-}
-function CommandeCard({c}){
-  return(
-    <div style={{background:"#fff",borderRadius:14,padding:16,boxShadow:"0 2px 8px rgba(0,0,0,.06)",marginBottom:10,border:"1px solid #eef2f0"}}>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
-        <div>
-          <div style={{fontWeight:800,fontSize:14,color:"#1a7a56"}}>{c.num}</div>
-          <div style={{fontWeight:600,fontSize:15,marginTop:2}}>{c.client}</div>
-        </div>
-        <Badge s={c.statut}/>
-      </div>
-      <div style={{fontSize:13,color:"#4a5c55",marginBottom:8}}>{c.produit}</div>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-        <div style={{display:"flex",gap:12}}>
-          <span style={{fontSize:12,color:"#6b7875"}}>Qté : <strong>{c.qte}</strong></span>
-          <span style={{fontSize:12,color:"#6b7875"}}>📍 {c.ville}</span>
-        </div>
-        <div style={{fontWeight:800,color:"#1a7a56",fontSize:15}}>{c.total.toFixed(3)} TND</div>
-      </div>
-    </div>
-  );
-}
-
 function Dashboard(){
-  const [tab,setTab]=useState("prospects");
-  const isMobile=window.innerWidth<768;
+  const [tab,setTab]=useState("commandes");
+  const [commandes,setCommandes]=useState([]);
+  const [prospects,setProspects]=useState([]);
+  const [produits,setProduits]=useState([]);
+  const [categories,setCategories]=useState([]);
+  const [loading,setLoading]=useState(true);
   const [mobile,setMobile]=useState(window.innerWidth<768);
-  useEffect(()=>{
-    const fn=()=>setMobile(window.innerWidth<768);
-    window.addEventListener("resize",fn);return()=>window.removeEventListener("resize",fn);
+  // Modals
+  const [editProd,setEditProd]=useState(null);
+  const [editCmd,setEditCmd]=useState(null);
+  const [showAddProd,setShowAddProd]=useState(false);
+
+  useEffect(()=>{const fn=()=>setMobile(window.innerWidth<768);window.addEventListener("resize",fn);return()=>window.removeEventListener("resize",fn);},[]);
+
+  const load=useCallback(async()=>{
+    setLoading(true);
+    try {
+      const [cmd,pros,prod,cat]=await Promise.all([
+        sb("commandes",{filter:"&order=created_at.desc"}),
+        sb("prospects",{filter:"&order=created_at.desc"}),
+        sb("produits",{filter:"&order=created_at.asc&select=*,categories(nom)"}),
+        sb("categories",{filter:"&order=ordre.asc"}),
+      ]);
+      setCommandes(cmd);setProspects(pros);setProduits(prod);setCategories(cat);
+    } catch(e){console.error(e);}
+    setLoading(false);
   },[]);
 
+  useEffect(()=>{load();},[load]);
+
+  // Stats
+  const today=new Date().toISOString().split("T")[0];
+  const cmdAuj=commandes.filter(c=>c.created_at?.startsWith(today)).length;
+  const prosAuj=prospects.filter(p=>p.created_at?.startsWith(today)).length;
+  const ca=commandes.filter(c=>c.statut!=="Nouveau"||true).reduce((s,c)=>s+parseFloat(c.total||0),0);
+
+  async function updateStatut(table,id,statut){
+    await sb(table,{method:"PATCH",filter:`&id=eq.${id}`,body:{statut}});
+    load();
+  }
+
+  async function deleteProd(id){
+    if(!confirm("Supprimer ce produit ?")) return;
+    await sb("produits",{method:"DELETE",filter:`&id=eq.${id}`});
+    load();
+  }
+
+  async function saveProd(data){
+    if(data.id){
+      await sb("produits",{method:"PATCH",filter:`&id=eq.${data.id}`,body:{...data,updated_at:new Date().toISOString()}});
+    } else {
+      await sb("produits",{method:"POST",body:data});
+    }
+    setEditProd(null);setShowAddProd(false);load();
+  }
+
+  function ProdModal({prod,onClose}){
+    const [f,setF]=useState(prod||{nom:"",prix:"",emoji:"✨",description:"",badge:"",actif:true,categorie_id:categories[0]?.id||""});
+    return(
+      <div style={{position:"fixed",inset:0,background:"rgba(0,0,0,.5)",zIndex:100,display:"flex",alignItems:"center",justifyContent:"center",padding:16}}>
+        <div style={{background:"#fff",borderRadius:20,padding:24,width:"100%",maxWidth:480,maxHeight:"90vh",overflowY:"auto"}}>
+          <h3 style={{fontWeight:800,marginBottom:20,fontSize:18}}>{prod?"✏️ Modifier":"➕ Nouveau produit"}</h3>
+          {[["Nom du produit","nom","text"],["Prix (TND)","prix","number"],["Emoji","emoji","text"],["Badge (optionnel)","badge","text"],["Description","description","text"]].map(([lbl,key,type])=>(
+            <div key={key} style={{marginBottom:12}}>
+              <label style={{fontSize:12,color:"#6b7875",fontWeight:600}}>{lbl}</label>
+              <input type={type} value={f[key]||""} onChange={e=>setF(v=>({...v,[key]:e.target.value}))} style={{width:"100%",border:"1.5px solid #ddd",borderRadius:8,padding:"9px 12px",fontSize:14,marginTop:4,outline:"none"}}/>
+            </div>
+          ))}
+          <div style={{marginBottom:12}}>
+            <label style={{fontSize:12,color:"#6b7875",fontWeight:600}}>Catégorie</label>
+            <select value={f.categorie_id||""} onChange={e=>setF(v=>({...v,categorie_id:e.target.value}))} style={{width:"100%",border:"1.5px solid #ddd",borderRadius:8,padding:"9px 12px",fontSize:14,marginTop:4}}>
+              {categories.map(c=><option key={c.id} value={c.id}>{c.nom}</option>)}
+            </select>
+          </div>
+          <div style={{marginBottom:16}}>
+            <label style={{fontSize:12,color:"#6b7875",fontWeight:600}}>Actif</label>
+            <input type="checkbox" checked={f.actif} onChange={e=>setF(v=>({...v,actif:e.target.checked}))} style={{marginLeft:8}}/>
+          </div>
+          <div style={{display:"flex",gap:8}}>
+            <button onClick={()=>saveProd(f)} style={{flex:1,background:"#1a7a56",color:"#fff",border:"none",padding:12,borderRadius:10,fontWeight:700,fontSize:14}}>💾 Enregistrer</button>
+            <button onClick={onClose} style={{flex:1,background:"#f0f4f2",border:"none",padding:12,borderRadius:10,fontWeight:700,fontSize:14}}>Annuler</button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if(loading) return <div style={{textAlign:"center",padding:60,fontSize:18,color:"#1a7a56"}}><Spinner/> Chargement…</div>;
+
   return(
     <div>
-      {/* Titre mobile */}
-      {mobile&&<h2 style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontWeight:800,fontSize:22,marginBottom:20}}>📊 Dashboard Admin</h2>}
+      {(editProd||showAddProd)&&<ProdModal prod={editProd} onClose={()=>{setEditProd(null);setShowAddProd(false);}}/>}
 
-      {/* Stats — 2 col sur mobile, 4 sur desktop */}
+      {/* Stats */}
       <div style={{display:"grid",gridTemplateColumns:mobile?"1fr 1fr":"repeat(4,1fr)",gap:12,marginBottom:20}}>
-        <StatCard label="Prospects" value="248" color="#1a7a56"/>
-        <StatCard label="Commandes" value="96" color="#0d8a7e"/>
-        <StatCard label="Aujourd'hui" value="18" sub="Prospects" color="#e879a6"/>
-        <StatCard label="CA / mois" value={mobile?"14k":"14 820"} sub="TND" color="#f0a93c"/>
+        {[[commandes.length,"Commandes","#1a7a56"],[prospects.length,"Prospects","#0d8a7e"],[cmdAuj,"Commandes auj.","#e879a6"],[ca.toFixed(0)+" TND","CA total","#f0a93c"]].map(([v,l,c])=>(
+          <div key={l} style={{background:"#fff",borderRadius:14,padding:mobile?"14px":"20px",boxShadow:"0 2px 10px rgba(0,0,0,.05)",position:"relative",overflow:"hidden"}}>
+            <div style={{position:"absolute",top:0,left:0,right:0,height:4,background:c,borderRadius:"14px 14px 0 0"}}/>
+            <div style={{fontSize:mobile?26:32,fontWeight:800,color:c,lineHeight:1}}>{v}</div>
+            <div style={{fontSize:12,color:"#5a6661",marginTop:6}}>{l}</div>
+          </div>
+        ))}
       </div>
 
-      {/* Graphiques — 1 col sur mobile, 2 sur desktop */}
-      <div style={{display:"grid",gridTemplateColumns:mobile?"1fr":"1fr 1fr",gap:14,marginBottom:14}}>
-        <div style={{background:"#fff",borderRadius:16,padding:mobile?16:22,boxShadow:"0 2px 12px rgba(0,0,0,.05)"}}>
-          <h3 style={{fontSize:14,fontWeight:700,marginBottom:16,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>📈 Prospects & Commandes</h3>
-          <BarChart/>
-        </div>
-        <div style={{background:"#fff",borderRadius:16,padding:mobile?16:22,boxShadow:"0 2px 12px rgba(0,0,0,.05)"}}>
-          <h3 style={{fontSize:14,fontWeight:700,marginBottom:16,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>🏆 Produits les plus demandés</h3>
-          <HBar/>
-        </div>
-        <div style={{background:"#fff",borderRadius:16,padding:mobile?16:22,boxShadow:"0 2px 12px rgba(0,0,0,.05)",gridColumn:mobile?"1":"1/-1"}}>
-          <h3 style={{fontSize:14,fontWeight:700,marginBottom:16,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>🎯 Répartition des besoins</h3>
-          <Donut/>
-        </div>
-      </div>
-
-      {/* Tableaux / Cartes */}
-      <div style={{background:"#fff",borderRadius:16,padding:mobile?16:22,boxShadow:"0 2px 12px rgba(0,0,0,.05)"}}>
-        <div style={{display:"flex",gap:8,marginBottom:18}}>
-          {["prospects","commandes"].map(t=>(
-            <button key={t} onClick={()=>setTab(t)} style={{flex:mobile?1:0,border:"none",background:tab===t?"#1a7a56":"#eef2f0",color:tab===t?"#fff":"#3a4742",padding:"9px 16px",borderRadius:10,fontWeight:700,fontSize:mobile?13:13.5,fontFamily:"'Plus Jakarta Sans',sans-serif",textAlign:"center"}}>
-              {t==="prospects"?"👥 Prospects":"🛒 Commandes"}
+      {/* Tabs */}
+      <div style={{background:"#fff",borderRadius:16,padding:mobile?14:22,boxShadow:"0 2px 10px rgba(0,0,0,.05)"}}>
+        <div style={{display:"flex",gap:8,marginBottom:18,flexWrap:"wrap"}}>
+          {[["commandes","🛒 Commandes"],["prospects","👥 Prospects"],["produits","📦 Produits"]].map(([t,l])=>(
+            <button key={t} onClick={()=>setTab(t)} style={{border:"none",background:tab===t?"#1a7a56":"#eef2f0",color:tab===t?"#fff":"#3a4742",padding:"9px 16px",borderRadius:10,fontWeight:700,fontSize:mobile?12:13.5,flex:mobile?"1":""}}>
+              {l}
             </button>
           ))}
+          <button onClick={load} style={{border:"none",background:"#f0f4f2",padding:"9px 14px",borderRadius:10,fontWeight:600,fontSize:13,marginLeft:"auto"}}>🔄</button>
         </div>
 
-        {mobile?(
-          /* Version cartes sur mobile */
-          <div>
-            {tab==="prospects"
-              ? PROSPECTS_DATA.map((p,i)=><ProspectCard key={i} p={p}/>)
-              : COMMANDES_DATA.map((c,i)=><CommandeCard key={i} c={c}/>)
-            }
-          </div>
+        {/* COMMANDES */}
+        {tab==="commandes"&&(mobile?(
+          commandes.map((c,i)=>(
+            <div key={i} style={{background:"#f8faf9",borderRadius:12,padding:14,marginBottom:10,border:"1px solid #eef2f0"}}>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:8}}>
+                <span style={{fontWeight:800,color:"#1a7a56"}}>{c.numero}</span>
+                <Badge s={c.statut}/>
+              </div>
+              <div style={{fontWeight:600,marginBottom:4}}>{c.client_nom}</div>
+              <div style={{fontSize:12,color:"#6b7875",marginBottom:8}}>📍 {c.client_ville} · 📞 {c.client_telephone}</div>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                <span style={{fontWeight:800,color:"#1a7a56"}}>{parseFloat(c.total).toFixed(3)} TND</span>
+                <select value={c.statut} onChange={e=>updateStatut("commandes",c.id,e.target.value)} style={{border:"1.5px solid #ddd",borderRadius:8,padding:"4px 8px",fontSize:12,background:"#fff"}}>
+                  {STATUTS.map(s=><option key={s}>{s}</option>)}
+                </select>
+              </div>
+            </div>
+          ))
         ):(
-          /* Version tableau sur desktop */
           <div style={{overflowX:"auto"}}>
-            {tab==="prospects"?(
-              <table style={{width:"100%",borderCollapse:"collapse",fontSize:13.5}}>
-                <thead><tr>{["Nom","Téléphone","Objectif","Produit recommandé","Date","Statut"].map(h=>(
-                  <th key={h} style={{textAlign:"left",padding:"10px 12px",color:"#6b7875",borderBottom:"2px solid #eef2f0",fontWeight:600,whiteSpace:"nowrap",fontSize:12}}>{h}</th>
-                ))}</tr></thead>
-                <tbody>{PROSPECTS_DATA.map((p,i)=>(
-                  <tr key={i} style={{borderBottom:"1px solid #f3f6f4"}}>
-                    <td style={{padding:"12px",fontWeight:600}}>{p.nom}</td>
-                    <td style={{padding:"12px",color:"#5a6661"}}>{p.tel}</td>
-                    <td style={{padding:"12px"}}>{p.objectif}</td>
-                    <td style={{padding:"12px"}}>{p.produit}</td>
-                    <td style={{padding:"12px",color:"#5a6661"}}>{p.date}</td>
-                    <td style={{padding:"12px"}}><Badge s={p.statut}/></td>
-                  </tr>
-                ))}</tbody>
-              </table>
-            ):(
-              <table style={{width:"100%",borderCollapse:"collapse",fontSize:13.5}}>
-                <thead><tr>{["Numéro","Client","Produit","Qté","Ville","Total TND","Statut"].map(h=>(
-                  <th key={h} style={{textAlign:"left",padding:"10px 12px",color:"#6b7875",borderBottom:"2px solid #eef2f0",fontWeight:600,whiteSpace:"nowrap",fontSize:12}}>{h}</th>
-                ))}</tr></thead>
-                <tbody>{COMMANDES_DATA.map((c,i)=>(
-                  <tr key={i} style={{borderBottom:"1px solid #f3f6f4"}}>
-                    <td style={{padding:"12px",fontWeight:700,color:"#1a7a56"}}>{c.num}</td>
-                    <td style={{padding:"12px",fontWeight:500}}>{c.client}</td>
-                    <td style={{padding:"12px"}}>{c.produit}</td>
-                    <td style={{padding:"12px",textAlign:"center",fontWeight:700}}>{c.qte}</td>
-                    <td style={{padding:"12px",color:"#5a6661"}}>{c.ville}</td>
-                    <td style={{padding:"12px",fontWeight:700,color:"#1a7a56"}}>{c.total.toFixed(3)}</td>
-                    <td style={{padding:"12px"}}><Badge s={c.statut}/></td>
-                  </tr>
-                ))}</tbody>
-              </table>
-            )}
+            <table style={{width:"100%",borderCollapse:"collapse",fontSize:13.5}}>
+              <thead><tr>{["Numéro","Client","Téléphone","Ville","Total","Date","Statut"].map(h=><th key={h} style={{textAlign:"left",padding:"10px 12px",color:"#6b7875",borderBottom:"2px solid #eef2f0",fontWeight:600,fontSize:12,whiteSpace:"nowrap"}}>{h}</th>)}</tr></thead>
+              <tbody>{commandes.map((c,i)=>(
+                <tr key={i} style={{borderBottom:"1px solid #f3f6f4"}}>
+                  <td style={{padding:"12px",fontWeight:700,color:"#1a7a56"}}>{c.numero}</td>
+                  <td style={{padding:"12px",fontWeight:600}}>{c.client_nom}</td>
+                  <td style={{padding:"12px",color:"#5a6661"}}>{c.client_telephone}</td>
+                  <td style={{padding:"12px"}}>{c.client_ville}</td>
+                  <td style={{padding:"12px",fontWeight:700,color:"#1a7a56"}}>{parseFloat(c.total).toFixed(3)}</td>
+                  <td style={{padding:"12px",color:"#5a6661",fontSize:12}}>{c.created_at?.slice(0,10)}</td>
+                  <td style={{padding:"12px"}}>
+                    <select value={c.statut} onChange={e=>updateStatut("commandes",c.id,e.target.value)} style={{border:"1.5px solid #ddd",borderRadius:8,padding:"4px 8px",fontSize:12,background:"#fff"}}>
+                      {STATUTS.map(s=><option key={s}>{s}</option>)}
+                    </select>
+                  </td>
+                </tr>
+              ))}</tbody>
+            </table>
+          </div>
+        ))}
+
+        {/* PROSPECTS */}
+        {tab==="prospects"&&(mobile?(
+          prospects.map((p,i)=>(
+            <div key={i} style={{background:"#f8faf9",borderRadius:12,padding:14,marginBottom:10,border:"1px solid #eef2f0"}}>
+              <div style={{display:"flex",justifyContent:"space-between",marginBottom:6}}>
+                <span style={{fontWeight:700}}>{p.nom}</span>
+                <Badge s={p.statut}/>
+              </div>
+              <div style={{fontSize:12,color:"#6b7875",marginBottom:4}}>📞 {p.telephone}</div>
+              <div style={{fontSize:13,marginBottom:8}}>🎯 {p.objectif} → {p.produit_recommande}</div>
+              <select value={p.statut} onChange={e=>updateStatut("prospects",p.id,e.target.value)} style={{border:"1.5px solid #ddd",borderRadius:8,padding:"5px 8px",fontSize:12,background:"#fff",width:"100%"}}>
+                {STATUTS.map(s=><option key={s}>{s}</option>)}
+              </select>
+            </div>
+          ))
+        ):(
+          <div style={{overflowX:"auto"}}>
+            <table style={{width:"100%",borderCollapse:"collapse",fontSize:13.5}}>
+              <thead><tr>{["Nom","Téléphone","Objectif","Produit","Date","Statut"].map(h=><th key={h} style={{textAlign:"left",padding:"10px 12px",color:"#6b7875",borderBottom:"2px solid #eef2f0",fontWeight:600,fontSize:12,whiteSpace:"nowrap"}}>{h}</th>)}</tr></thead>
+              <tbody>{prospects.map((p,i)=>(
+                <tr key={i} style={{borderBottom:"1px solid #f3f6f4"}}>
+                  <td style={{padding:"12px",fontWeight:600}}>{p.nom}</td>
+                  <td style={{padding:"12px",color:"#5a6661"}}>{p.telephone}</td>
+                  <td style={{padding:"12px"}}>{p.objectif}</td>
+                  <td style={{padding:"12px"}}>{p.produit_recommande}</td>
+                  <td style={{padding:"12px",color:"#5a6661",fontSize:12}}>{p.created_at?.slice(0,10)}</td>
+                  <td style={{padding:"12px"}}>
+                    <select value={p.statut} onChange={e=>updateStatut("prospects",p.id,e.target.value)} style={{border:"1.5px solid #ddd",borderRadius:8,padding:"4px 8px",fontSize:12,background:"#fff"}}>
+                      {STATUTS.map(s=><option key={s}>{s}</option>)}
+                    </select>
+                  </td>
+                </tr>
+              ))}</tbody>
+            </table>
+          </div>
+        ))}
+
+        {/* PRODUITS */}
+        {tab==="produits"&&(
+          <div>
+            <button onClick={()=>setShowAddProd(true)} style={{background:"#1a7a56",color:"#fff",border:"none",padding:"10px 20px",borderRadius:10,fontWeight:700,fontSize:14,marginBottom:16}}>+ Ajouter un produit</button>
+            <div style={{display:"grid",gridTemplateColumns:mobile?"1fr":"repeat(auto-fill,minmax(300px,1fr))",gap:12}}>
+              {produits.map(p=>(
+                <div key={p.id} style={{background:"#f8faf9",borderRadius:12,padding:14,border:"1px solid #eef2f0",opacity:p.actif?1:0.5}}>
+                  <div style={{display:"flex",gap:10,alignItems:"flex-start"}}>
+                    <img src={p.img} alt={p.nom} style={{width:56,height:56,borderRadius:8,objectFit:"cover",flexShrink:0,background:"#eef2f0"}} onError={e=>e.target.style.display="none"}/>
+                    <div style={{flex:1,minWidth:0}}>
+                      <div style={{fontWeight:700,fontSize:14,marginBottom:2}}>{p.emoji} {p.nom}</div>
+                      <div style={{fontSize:12,color:"#6b7875",marginBottom:4}}>{p.categories?.nom}</div>
+                      <div style={{fontWeight:800,color:"#1a7a56",fontSize:15}}>{parseFloat(p.prix).toFixed(3)} TND</div>
+                    </div>
+                  </div>
+                  <div style={{display:"flex",gap:6,marginTop:10}}>
+                    <button onClick={()=>setEditProd(p)} style={{flex:1,background:"#e8f0ff",color:"#2563eb",border:"none",padding:"7px",borderRadius:8,fontWeight:700,fontSize:13}}>✏️ Modifier</button>
+                    <button onClick={()=>deleteProd(p.id)} style={{flex:1,background:"#ffe8e8",color:"#dc2626",border:"none",padding:"7px",borderRadius:8,fontWeight:700,fontSize:13}}>🗑️ Supprimer</button>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -695,78 +567,50 @@ function Dashboard(){
   );
 }
 
-/* ══════════════════════════════════════════
-   APP
-══════════════════════════════════════════ */
+/* ══ APP ══ */
 function App(){
   const [view,setView]=useState("whatsapp");
   const [mobile,setMobile]=useState(window.innerWidth<768);
-  useEffect(()=>{
-    const fn=()=>setMobile(window.innerWidth<768);
-    window.addEventListener("resize",fn);return()=>window.removeEventListener("resize",fn);
-  },[]);
+  useEffect(()=>{const fn=()=>setMobile(window.innerWidth<768);window.addEventListener("resize",fn);return()=>window.removeEventListener("resize",fn);},[]);
 
   return(
-    <div style={{minHeight:"100vh",fontFamily:"'DM Sans',system-ui,sans-serif",background:"#f0f4f2",color:"#182420",paddingBottom:mobile?72:0}}>
-
-      {/* ── Header ── */}
+    <div style={{minHeight:"100vh",background:"#f0f4f2",color:"#182420",paddingBottom:mobile?72:0}}>
       <header style={{background:"#fff",borderBottom:"1px solid #e4ece8",padding:mobile?"12px 16px":"14px 32px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:20,boxShadow:"0 2px 12px rgba(0,0,0,.04)"}}>
         <div style={{display:"flex",alignItems:"center",gap:10}}>
-          <div style={{width:mobile?38:44,height:mobile?38:44,borderRadius:13,background:"linear-gradient(135deg,#1a7a56,#0d8a7e)",display:"grid",placeItems:"center",color:"#fff",fontWeight:800,fontSize:mobile?18:22,fontFamily:"'Plus Jakarta Sans',sans-serif",boxShadow:"0 4px 12px rgba(26,122,86,.3)"}}>Q</div>
+          <div style={{width:mobile?38:44,height:mobile?38:44,borderRadius:13,background:"linear-gradient(135deg,#1a7a56,#0d8a7e)",display:"grid",placeItems:"center",color:"#fff",fontWeight:800,fontSize:mobile?18:22,boxShadow:"0 4px 12px rgba(26,122,86,.3)"}}>Q</div>
           <div>
             <div style={{fontWeight:800,letterSpacing:2,fontSize:mobile?15:17,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>QURIOS</div>
             {!mobile&&<div style={{fontSize:10.5,color:"#8a9490",letterSpacing:1.5,textTransform:"uppercase"}}>Compléments · Cosmétiques · Tunisie</div>}
           </div>
         </div>
-        {/* Nav desktop uniquement */}
         {!mobile&&(
           <nav style={{display:"flex",gap:8}}>
-            {[["whatsapp","💬  Assistant WhatsApp"],["dashboard","📊  Dashboard Admin"]].map(([v,l])=>(
-              <button key={v} onClick={()=>setView(v)} style={{border:"none",background:view===v?"#1a7a56":"#eef2f0",color:view===v?"#fff":"#3a4742",padding:"10px 18px",borderRadius:11,fontWeight:700,fontSize:13.5,fontFamily:"'Plus Jakarta Sans',sans-serif",boxShadow:view===v?"0 4px 14px rgba(26,122,86,.25)":"none",transition:"all .2s"}}>
-                {l}
-              </button>
+            {[["whatsapp","💬 Assistant WhatsApp"],["dashboard","📊 Dashboard Admin"]].map(([v,l])=>(
+              <button key={v} onClick={()=>setView(v)} style={{border:"none",background:view===v?"#1a7a56":"#eef2f0",color:view===v?"#fff":"#3a4742",padding:"10px 18px",borderRadius:11,fontWeight:700,fontSize:13.5,boxShadow:view===v?"0 4px 14px rgba(26,122,86,.25)":"none",transition:"all .2s"}}>{l}</button>
             ))}
           </nav>
         )}
       </header>
 
-      {/* ── Main ── */}
-      <main style={{maxWidth:1200,margin:"0 auto",padding:mobile?"20px 14px 24px":"32px 24px 80px"}}>
+      <main style={{maxWidth:1200,margin:"0 auto",padding:mobile?"16px 12px":"32px 24px 80px"}}>
         {view==="whatsapp"?(
           mobile?(
-            /* Mobile : chat centré seul */
-            <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:16}}>
-              <div style={{textAlign:"center",paddingBottom:4}}>
-                <div style={{display:"inline-block",background:"#e7f7ed",color:"#0f7a4f",padding:"4px 12px",borderRadius:20,fontSize:11,fontWeight:700,letterSpacing:1,marginBottom:10}}>SOLUTION RÉELLE</div>
-                <h1 style={{fontSize:26,fontWeight:800,lineHeight:1.2,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
-                  Votre boutique<br/>
-                  <span style={{background:"linear-gradient(90deg,#1a7a56,#25d366)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>Qurios sur WhatsApp</span>
-                </h1>
+            <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:12}}>
+              <div style={{textAlign:"center"}}>
+                <div style={{display:"inline-block",background:"#e7f7ed",color:"#0f7a4f",padding:"4px 12px",borderRadius:20,fontSize:11,fontWeight:700,marginBottom:10}}>SOLUTION RÉELLE · DONNÉES LIVE</div>
+                <h1 style={{fontSize:24,fontWeight:800,lineHeight:1.2,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>Boutique Qurios<br/><span style={{background:"linear-gradient(90deg,#1a7a56,#25d366)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>sur WhatsApp</span></h1>
               </div>
               <WA/>
             </div>
           ):(
-            /* Desktop : 2 colonnes */
             <div style={{display:"grid",gridTemplateColumns:"1fr auto",gap:48,alignItems:"start"}}>
               <div style={{paddingTop:12}}>
-                <div style={{display:"inline-block",background:"#e7f7ed",color:"#0f7a4f",padding:"5px 14px",borderRadius:20,fontSize:12,fontWeight:700,letterSpacing:1,marginBottom:18}}>SOLUTION RÉELLE</div>
-                <h1 style={{fontSize:38,fontWeight:800,lineHeight:1.12,marginBottom:16,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
-                  Votre boutique Qurios<br/>
-                  <span style={{background:"linear-gradient(90deg,#1a7a56,#25d366)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>sur WhatsApp</span>
-                </h1>
-                <p style={{fontSize:16,color:"#4a5c55",lineHeight:1.7,maxWidth:480,marginBottom:28}}>
-                  Catalogue complet, panier interactif, recommandations personnalisées et prise de commande — tout depuis WhatsApp, 24h/24.
-                </p>
-                <div style={{display:"flex",flexDirection:"column",gap:14,marginBottom:28}}>
-                  {[["🛒","Catalogue réel qurios.tn — 20+ produits avec prix"],["🎯","Recommandation selon l'objectif du client"],["🧺","Panier interactif — ajout, modification, suppression"],["📦","Commande en 1 message — livraison à domicile"],["📊","Chaque vente remonte au Dashboard Admin"]].map(([e,t])=>(
-                    <div key={t} style={{display:"flex",alignItems:"center",gap:12,fontSize:14.5,color:"#2c3a35"}}>
-                      <span style={{fontSize:20,flexShrink:0}}>{e}</span>{t}
-                    </div>
-                  ))}
-                </div>
-                <div style={{background:"linear-gradient(135deg,#e7f7ed,#d4f0e5)",padding:"14px 18px",borderRadius:13,display:"inline-flex",alignItems:"center",gap:10,fontSize:13.5,fontWeight:600,color:"#0f7a4f",border:"1px solid #b2dfce"}}>
-                  👉 Essayez : parcourez le catalogue et passez une commande →
-                </div>
+                <div style={{display:"inline-block",background:"#e7f7ed",color:"#0f7a4f",padding:"5px 14px",borderRadius:20,fontSize:12,fontWeight:700,marginBottom:18}}>SOLUTION RÉELLE · DONNÉES LIVE</div>
+                <h1 style={{fontSize:38,fontWeight:800,lineHeight:1.12,marginBottom:16,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>Votre boutique Qurios<br/><span style={{background:"linear-gradient(90deg,#1a7a56,#25d366)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>sur WhatsApp</span></h1>
+                <p style={{fontSize:16,color:"#4a5c55",lineHeight:1.7,maxWidth:480,marginBottom:28}}>Catalogue connecté, panier interactif et commandes enregistrées en temps réel dans Supabase.</p>
+                {[["🛒","Catalogue réel qurios.tn — 20+ produits"],["🎯","Recommandation personnalisée par objectif"],["🧺","Panier interactif complet"],["📦","Commandes enregistrées en temps réel"],["📊","Dashboard admin — modifier produits, statuts"]].map(([e,t])=>(
+                  <div key={t} style={{display:"flex",alignItems:"center",gap:12,fontSize:14.5,color:"#2c3a35",marginBottom:12}}><span style={{fontSize:20,flexShrink:0}}>{e}</span>{t}</div>
+                ))}
               </div>
               <WA/>
             </div>
@@ -776,11 +620,10 @@ function App(){
         )}
       </main>
 
-      {/* ── Bottom nav mobile ── */}
       {mobile&&(
         <nav style={{position:"fixed",bottom:0,left:0,right:0,background:"#fff",borderTop:"1px solid #e4ece8",display:"flex",zIndex:30,boxShadow:"0 -4px 20px rgba(0,0,0,.08)"}}>
           {[["whatsapp","💬","WhatsApp"],["dashboard","📊","Dashboard"]].map(([v,ic,lb])=>(
-            <button key={v} onClick={()=>setView(v)} style={{flex:1,border:"none",background:"none",padding:"12px 8px 10px",display:"flex",flexDirection:"column",alignItems:"center",gap:3,color:view===v?"#1a7a56":"#8a9490",fontFamily:"'DM Sans',sans-serif"}}>
+            <button key={v} onClick={()=>setView(v)} style={{flex:1,border:"none",background:"none",padding:"12px 8px 10px",display:"flex",flexDirection:"column",alignItems:"center",gap:3,color:view===v?"#1a7a56":"#8a9490"}}>
               <span style={{fontSize:22}}>{ic}</span>
               <span style={{fontSize:11,fontWeight:700}}>{lb}</span>
               {view===v&&<div style={{width:20,height:3,background:"#1a7a56",borderRadius:2}}/>}
@@ -789,12 +632,13 @@ function App(){
         </nav>
       )}
 
-      <footer style={{textAlign:"center",padding:"16px",color:"#9aa5a0",fontSize:12,borderTop:"1px solid #e4ece8",background:"#fff"}}>
+      <footer style={{textAlign:"center",padding:16,color:"#9aa5a0",fontSize:12,borderTop:"1px solid #e4ece8",background:"#fff"}}>
         © 2026 Qurios · <a href="https://qurios.tn" style={{color:"#1a7a56"}}>qurios.tn</a>
       </footer>
     </div>
   );
 }
+
 ReactDOM.createRoot(document.getElementById("root")).render(<App/>);
 </script>
 </body>

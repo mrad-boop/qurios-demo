@@ -548,74 +548,148 @@ function Donut(){
     </div>
   );
 }
+/* ── Carte mobile pour tableaux ── */
+function ProspectCard({p}){
+  return(
+    <div style={{background:"#fff",borderRadius:14,padding:16,boxShadow:"0 2px 8px rgba(0,0,0,.06)",marginBottom:10,border:"1px solid #eef2f0"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+        <div>
+          <div style={{fontWeight:700,fontSize:15}}>{p.nom}</div>
+          <div style={{color:"#5a6661",fontSize:13,marginTop:2}}>📞 {p.tel}</div>
+        </div>
+        <Badge s={p.statut}/>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:8}}>
+        <div style={{background:"#f8faf9",borderRadius:8,padding:"8px 10px"}}>
+          <div style={{fontSize:10,color:"#9aa5a0",marginBottom:2,textTransform:"uppercase",letterSpacing:.5}}>Objectif</div>
+          <div style={{fontSize:13,fontWeight:600}}>{p.objectif}</div>
+        </div>
+        <div style={{background:"#f8faf9",borderRadius:8,padding:"8px 10px"}}>
+          <div style={{fontSize:10,color:"#9aa5a0",marginBottom:2,textTransform:"uppercase",letterSpacing:.5}}>Produit</div>
+          <div style={{fontSize:12,fontWeight:600}}>{p.produit}</div>
+        </div>
+      </div>
+      <div style={{fontSize:11,color:"#9aa5a0",marginTop:8,textAlign:"right"}}>{p.date}</div>
+    </div>
+  );
+}
+function CommandeCard({c}){
+  return(
+    <div style={{background:"#fff",borderRadius:14,padding:16,boxShadow:"0 2px 8px rgba(0,0,0,.06)",marginBottom:10,border:"1px solid #eef2f0"}}>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+        <div>
+          <div style={{fontWeight:800,fontSize:14,color:"#1a7a56"}}>{c.num}</div>
+          <div style={{fontWeight:600,fontSize:15,marginTop:2}}>{c.client}</div>
+        </div>
+        <Badge s={c.statut}/>
+      </div>
+      <div style={{fontSize:13,color:"#4a5c55",marginBottom:8}}>{c.produit}</div>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+        <div style={{display:"flex",gap:12}}>
+          <span style={{fontSize:12,color:"#6b7875"}}>Qté : <strong>{c.qte}</strong></span>
+          <span style={{fontSize:12,color:"#6b7875"}}>📍 {c.ville}</span>
+        </div>
+        <div style={{fontWeight:800,color:"#1a7a56",fontSize:15}}>{c.total.toFixed(3)} TND</div>
+      </div>
+    </div>
+  );
+}
+
 function Dashboard(){
   const [tab,setTab]=useState("prospects");
+  const isMobile=window.innerWidth<768;
+  const [mobile,setMobile]=useState(window.innerWidth<768);
+  useEffect(()=>{
+    const fn=()=>setMobile(window.innerWidth<768);
+    window.addEventListener("resize",fn);return()=>window.removeEventListener("resize",fn);
+  },[]);
+
   return(
     <div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fit,minmax(200px,1fr))",gap:16,marginBottom:24}}>
-        <StatCard label="Prospects total" value="248" color="#1a7a56"/>
-        <StatCard label="Commandes total" value="96" color="#0d8a7e"/>
-        <StatCard label="Prospects aujourd'hui" value="18" sub="12% vs hier" color="#e879a6"/>
-        <StatCard label="CA du mois (TND)" value="14 820" sub="8% vs avril" color="#f0a93c"/>
+      {/* Titre mobile */}
+      {mobile&&<h2 style={{fontFamily:"'Plus Jakarta Sans',sans-serif",fontWeight:800,fontSize:22,marginBottom:20}}>📊 Dashboard Admin</h2>}
+
+      {/* Stats — 2 col sur mobile, 4 sur desktop */}
+      <div style={{display:"grid",gridTemplateColumns:mobile?"1fr 1fr":"repeat(4,1fr)",gap:12,marginBottom:20}}>
+        <StatCard label="Prospects" value="248" color="#1a7a56"/>
+        <StatCard label="Commandes" value="96" color="#0d8a7e"/>
+        <StatCard label="Aujourd'hui" value="18" sub="Prospects" color="#e879a6"/>
+        <StatCard label="CA / mois" value={mobile?"14k":"14 820"} sub="TND" color="#f0a93c"/>
       </div>
-      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:16,marginBottom:16}}>
-        <div style={{background:"#fff",borderRadius:16,padding:22,boxShadow:"0 2px 12px rgba(0,0,0,.05)"}}>
-          <h3 style={{fontSize:15,fontWeight:700,marginBottom:18,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>Prospects & Commandes / mois</h3>
+
+      {/* Graphiques — 1 col sur mobile, 2 sur desktop */}
+      <div style={{display:"grid",gridTemplateColumns:mobile?"1fr":"1fr 1fr",gap:14,marginBottom:14}}>
+        <div style={{background:"#fff",borderRadius:16,padding:mobile?16:22,boxShadow:"0 2px 12px rgba(0,0,0,.05)"}}>
+          <h3 style={{fontSize:14,fontWeight:700,marginBottom:16,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>📈 Prospects & Commandes</h3>
           <BarChart/>
         </div>
-        <div style={{background:"#fff",borderRadius:16,padding:22,boxShadow:"0 2px 12px rgba(0,0,0,.05)"}}>
-          <h3 style={{fontSize:15,fontWeight:700,marginBottom:18,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>Produits les plus demandés</h3>
+        <div style={{background:"#fff",borderRadius:16,padding:mobile?16:22,boxShadow:"0 2px 12px rgba(0,0,0,.05)"}}>
+          <h3 style={{fontSize:14,fontWeight:700,marginBottom:16,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>🏆 Produits les plus demandés</h3>
           <HBar/>
         </div>
-        <div style={{background:"#fff",borderRadius:16,padding:22,boxShadow:"0 2px 12px rgba(0,0,0,.05)",gridColumn:"1/-1"}}>
-          <h3 style={{fontSize:15,fontWeight:700,marginBottom:18,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>Répartition des besoins clients</h3>
+        <div style={{background:"#fff",borderRadius:16,padding:mobile?16:22,boxShadow:"0 2px 12px rgba(0,0,0,.05)",gridColumn:mobile?"1":"1/-1"}}>
+          <h3 style={{fontSize:14,fontWeight:700,marginBottom:16,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>🎯 Répartition des besoins</h3>
           <Donut/>
         </div>
       </div>
-      <div style={{background:"#fff",borderRadius:16,padding:22,boxShadow:"0 2px 12px rgba(0,0,0,.05)"}}>
+
+      {/* Tableaux / Cartes */}
+      <div style={{background:"#fff",borderRadius:16,padding:mobile?16:22,boxShadow:"0 2px 12px rgba(0,0,0,.05)"}}>
         <div style={{display:"flex",gap:8,marginBottom:18}}>
           {["prospects","commandes"].map(t=>(
-            <button key={t} onClick={()=>setTab(t)} style={{border:"none",background:tab===t?"#1a7a56":"#eef2f0",color:tab===t?"#fff":"#3a4742",padding:"9px 20px",borderRadius:10,fontWeight:700,fontSize:13.5,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+            <button key={t} onClick={()=>setTab(t)} style={{flex:mobile?1:0,border:"none",background:tab===t?"#1a7a56":"#eef2f0",color:tab===t?"#fff":"#3a4742",padding:"9px 16px",borderRadius:10,fontWeight:700,fontSize:mobile?13:13.5,fontFamily:"'Plus Jakarta Sans',sans-serif",textAlign:"center"}}>
               {t==="prospects"?"👥 Prospects":"🛒 Commandes"}
             </button>
           ))}
         </div>
-        <div style={{overflowX:"auto"}}>
-          {tab==="prospects"?(
-            <table style={{width:"100%",borderCollapse:"collapse",fontSize:13.5}}>
-              <thead><tr>{["Nom","Téléphone","Objectif","Produit recommandé","Date","Statut"].map(h=>(
-                <th key={h} style={{textAlign:"left",padding:"10px 12px",color:"#6b7875",borderBottom:"2px solid #eef2f0",fontWeight:600,whiteSpace:"nowrap",fontSize:12}}>{h}</th>
-              ))}</tr></thead>
-              <tbody>{PROSPECTS_DATA.map((p,i)=>(
-                <tr key={i} style={{borderBottom:"1px solid #f3f6f4"}}>
-                  <td style={{padding:"12px",fontWeight:600}}>{p.nom}</td>
-                  <td style={{padding:"12px",color:"#5a6661"}}>{p.tel}</td>
-                  <td style={{padding:"12px"}}>{p.objectif}</td>
-                  <td style={{padding:"12px"}}>{p.produit}</td>
-                  <td style={{padding:"12px",color:"#5a6661"}}>{p.date}</td>
-                  <td style={{padding:"12px"}}><Badge s={p.statut}/></td>
-                </tr>
-              ))}</tbody>
-            </table>
-          ):(
-            <table style={{width:"100%",borderCollapse:"collapse",fontSize:13.5}}>
-              <thead><tr>{["Numéro","Client","Produit","Qté","Ville","Total TND","Statut"].map(h=>(
-                <th key={h} style={{textAlign:"left",padding:"10px 12px",color:"#6b7875",borderBottom:"2px solid #eef2f0",fontWeight:600,whiteSpace:"nowrap",fontSize:12}}>{h}</th>
-              ))}</tr></thead>
-              <tbody>{COMMANDES_DATA.map((c,i)=>(
-                <tr key={i} style={{borderBottom:"1px solid #f3f6f4"}}>
-                  <td style={{padding:"12px",fontWeight:700,color:"#1a7a56"}}>{c.num}</td>
-                  <td style={{padding:"12px",fontWeight:500}}>{c.client}</td>
-                  <td style={{padding:"12px"}}>{c.produit}</td>
-                  <td style={{padding:"12px",textAlign:"center",fontWeight:700}}>{c.qte}</td>
-                  <td style={{padding:"12px",color:"#5a6661"}}>{c.ville}</td>
-                  <td style={{padding:"12px",fontWeight:700,color:"#1a7a56"}}>{c.total.toFixed(3)}</td>
-                  <td style={{padding:"12px"}}><Badge s={c.statut}/></td>
-                </tr>
-              ))}</tbody>
-            </table>
-          )}
-        </div>
+
+        {mobile?(
+          /* Version cartes sur mobile */
+          <div>
+            {tab==="prospects"
+              ? PROSPECTS_DATA.map((p,i)=><ProspectCard key={i} p={p}/>)
+              : COMMANDES_DATA.map((c,i)=><CommandeCard key={i} c={c}/>)
+            }
+          </div>
+        ):(
+          /* Version tableau sur desktop */
+          <div style={{overflowX:"auto"}}>
+            {tab==="prospects"?(
+              <table style={{width:"100%",borderCollapse:"collapse",fontSize:13.5}}>
+                <thead><tr>{["Nom","Téléphone","Objectif","Produit recommandé","Date","Statut"].map(h=>(
+                  <th key={h} style={{textAlign:"left",padding:"10px 12px",color:"#6b7875",borderBottom:"2px solid #eef2f0",fontWeight:600,whiteSpace:"nowrap",fontSize:12}}>{h}</th>
+                ))}</tr></thead>
+                <tbody>{PROSPECTS_DATA.map((p,i)=>(
+                  <tr key={i} style={{borderBottom:"1px solid #f3f6f4"}}>
+                    <td style={{padding:"12px",fontWeight:600}}>{p.nom}</td>
+                    <td style={{padding:"12px",color:"#5a6661"}}>{p.tel}</td>
+                    <td style={{padding:"12px"}}>{p.objectif}</td>
+                    <td style={{padding:"12px"}}>{p.produit}</td>
+                    <td style={{padding:"12px",color:"#5a6661"}}>{p.date}</td>
+                    <td style={{padding:"12px"}}><Badge s={p.statut}/></td>
+                  </tr>
+                ))}</tbody>
+              </table>
+            ):(
+              <table style={{width:"100%",borderCollapse:"collapse",fontSize:13.5}}>
+                <thead><tr>{["Numéro","Client","Produit","Qté","Ville","Total TND","Statut"].map(h=>(
+                  <th key={h} style={{textAlign:"left",padding:"10px 12px",color:"#6b7875",borderBottom:"2px solid #eef2f0",fontWeight:600,whiteSpace:"nowrap",fontSize:12}}>{h}</th>
+                ))}</tr></thead>
+                <tbody>{COMMANDES_DATA.map((c,i)=>(
+                  <tr key={i} style={{borderBottom:"1px solid #f3f6f4"}}>
+                    <td style={{padding:"12px",fontWeight:700,color:"#1a7a56"}}>{c.num}</td>
+                    <td style={{padding:"12px",fontWeight:500}}>{c.client}</td>
+                    <td style={{padding:"12px"}}>{c.produit}</td>
+                    <td style={{padding:"12px",textAlign:"center",fontWeight:700}}>{c.qte}</td>
+                    <td style={{padding:"12px",color:"#5a6661"}}>{c.ville}</td>
+                    <td style={{padding:"12px",fontWeight:700,color:"#1a7a56"}}>{c.total.toFixed(3)}</td>
+                    <td style={{padding:"12px"}}><Badge s={c.statut}/></td>
+                  </tr>
+                ))}</tbody>
+              </table>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );
@@ -626,61 +700,97 @@ function Dashboard(){
 ══════════════════════════════════════════ */
 function App(){
   const [view,setView]=useState("whatsapp");
+  const [mobile,setMobile]=useState(window.innerWidth<768);
+  useEffect(()=>{
+    const fn=()=>setMobile(window.innerWidth<768);
+    window.addEventListener("resize",fn);return()=>window.removeEventListener("resize",fn);
+  },[]);
+
   return(
-    <div style={{minHeight:"100vh",fontFamily:"'DM Sans',system-ui,sans-serif",background:"#f0f4f2",color:"#182420"}}>
-      <header style={{background:"#fff",borderBottom:"1px solid #e4ece8",padding:"14px 32px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:20,boxShadow:"0 2px 12px rgba(0,0,0,.04)"}}>
-        <div style={{display:"flex",alignItems:"center",gap:13}}>
-          <div style={{width:44,height:44,borderRadius:13,background:"linear-gradient(135deg,#1a7a56,#0d8a7e)",display:"grid",placeItems:"center",color:"#fff",fontWeight:800,fontSize:22,fontFamily:"'Plus Jakarta Sans',sans-serif",boxShadow:"0 4px 12px rgba(26,122,86,.3)"}}>Q</div>
+    <div style={{minHeight:"100vh",fontFamily:"'DM Sans',system-ui,sans-serif",background:"#f0f4f2",color:"#182420",paddingBottom:mobile?72:0}}>
+
+      {/* ── Header ── */}
+      <header style={{background:"#fff",borderBottom:"1px solid #e4ece8",padding:mobile?"12px 16px":"14px 32px",display:"flex",justifyContent:"space-between",alignItems:"center",position:"sticky",top:0,zIndex:20,boxShadow:"0 2px 12px rgba(0,0,0,.04)"}}>
+        <div style={{display:"flex",alignItems:"center",gap:10}}>
+          <div style={{width:mobile?38:44,height:mobile?38:44,borderRadius:13,background:"linear-gradient(135deg,#1a7a56,#0d8a7e)",display:"grid",placeItems:"center",color:"#fff",fontWeight:800,fontSize:mobile?18:22,fontFamily:"'Plus Jakarta Sans',sans-serif",boxShadow:"0 4px 12px rgba(26,122,86,.3)"}}>Q</div>
           <div>
-            <div style={{fontWeight:800,letterSpacing:2.5,fontSize:17,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>QURIOS</div>
-            <div style={{fontSize:10.5,color:"#8a9490",letterSpacing:1.5,textTransform:"uppercase"}}>Compléments · Cosmétiques · Tunisie</div>
+            <div style={{fontWeight:800,letterSpacing:2,fontSize:mobile?15:17,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>QURIOS</div>
+            {!mobile&&<div style={{fontSize:10.5,color:"#8a9490",letterSpacing:1.5,textTransform:"uppercase"}}>Compléments · Cosmétiques · Tunisie</div>}
           </div>
         </div>
-        <nav style={{display:"flex",gap:8}}>
-          {[["whatsapp","💬  Assistant WhatsApp"],["dashboard","📊  Dashboard Admin"]].map(([v,l])=>(
-            <button key={v} onClick={()=>setView(v)} style={{border:"none",background:view===v?"#1a7a56":"#eef2f0",color:view===v?"#fff":"#3a4742",padding:"10px 18px",borderRadius:11,fontWeight:700,fontSize:13.5,fontFamily:"'Plus Jakarta Sans',sans-serif",boxShadow:view===v?"0 4px 14px rgba(26,122,86,.25)":"none",transition:"all .2s"}}>
-              {l}
-            </button>
-          ))}
-        </nav>
+        {/* Nav desktop uniquement */}
+        {!mobile&&(
+          <nav style={{display:"flex",gap:8}}>
+            {[["whatsapp","💬  Assistant WhatsApp"],["dashboard","📊  Dashboard Admin"]].map(([v,l])=>(
+              <button key={v} onClick={()=>setView(v)} style={{border:"none",background:view===v?"#1a7a56":"#eef2f0",color:view===v?"#fff":"#3a4742",padding:"10px 18px",borderRadius:11,fontWeight:700,fontSize:13.5,fontFamily:"'Plus Jakarta Sans',sans-serif",boxShadow:view===v?"0 4px 14px rgba(26,122,86,.25)":"none",transition:"all .2s"}}>
+                {l}
+              </button>
+            ))}
+          </nav>
+        )}
       </header>
-      <main style={{maxWidth:1200,margin:"0 auto",padding:"32px 24px 80px"}}>
+
+      {/* ── Main ── */}
+      <main style={{maxWidth:1200,margin:"0 auto",padding:mobile?"20px 14px 24px":"32px 24px 80px"}}>
         {view==="whatsapp"?(
-          <div style={{display:"grid",gridTemplateColumns:"1fr auto",gap:48,alignItems:"start"}}>
-            <div style={{paddingTop:12}}>
-              <div style={{display:"inline-block",background:"#e7f7ed",color:"#0f7a4f",padding:"5px 14px",borderRadius:20,fontSize:12,fontWeight:700,letterSpacing:1,marginBottom:18}}>SOLUTION RÉELLE</div>
-              <h1 style={{fontSize:38,fontWeight:800,lineHeight:1.12,marginBottom:16,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
-                Votre boutique Qurios<br/>
-                <span style={{background:"linear-gradient(90deg,#1a7a56,#25d366)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>sur WhatsApp</span>
-              </h1>
-              <p style={{fontSize:16,color:"#4a5c55",lineHeight:1.7,maxWidth:480,marginBottom:28}}>
-                Catalogue complet, panier interactif, recommandations personnalisées et prise de commande — tout depuis WhatsApp, 24h/24.
-              </p>
-              <div style={{display:"flex",flexDirection:"column",gap:14,marginBottom:28}}>
-                {[
-                  ["🛒","Catalogue réel qurios.tn — 20+ produits avec prix"],
-                  ["🎯","Recommandation selon l'objectif du client"],
-                  ["🧺","Panier interactif — ajout, modification, suppression"],
-                  ["📦","Commande en 1 message — livraison à domicile"],
-                  ["📊","Chaque vente remonte au Dashboard Admin"],
-                ].map(([e,t])=>(
-                  <div key={t} style={{display:"flex",alignItems:"center",gap:12,fontSize:14.5,color:"#2c3a35"}}>
-                    <span style={{fontSize:20,flexShrink:0}}>{e}</span>{t}
-                  </div>
-                ))}
+          mobile?(
+            /* Mobile : chat centré seul */
+            <div style={{display:"flex",flexDirection:"column",alignItems:"center",gap:16}}>
+              <div style={{textAlign:"center",paddingBottom:4}}>
+                <div style={{display:"inline-block",background:"#e7f7ed",color:"#0f7a4f",padding:"4px 12px",borderRadius:20,fontSize:11,fontWeight:700,letterSpacing:1,marginBottom:10}}>SOLUTION RÉELLE</div>
+                <h1 style={{fontSize:26,fontWeight:800,lineHeight:1.2,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+                  Votre boutique<br/>
+                  <span style={{background:"linear-gradient(90deg,#1a7a56,#25d366)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>Qurios sur WhatsApp</span>
+                </h1>
               </div>
-              <div style={{background:"linear-gradient(135deg,#e7f7ed,#d4f0e5)",padding:"14px 18px",borderRadius:13,display:"inline-flex",alignItems:"center",gap:10,fontSize:13.5,fontWeight:600,color:"#0f7a4f",border:"1px solid #b2dfce"}}>
-                👉 Essayez : parcourez le catalogue et passez une commande →
-              </div>
+              <WA/>
             </div>
-            <WA/>
-          </div>
+          ):(
+            /* Desktop : 2 colonnes */
+            <div style={{display:"grid",gridTemplateColumns:"1fr auto",gap:48,alignItems:"start"}}>
+              <div style={{paddingTop:12}}>
+                <div style={{display:"inline-block",background:"#e7f7ed",color:"#0f7a4f",padding:"5px 14px",borderRadius:20,fontSize:12,fontWeight:700,letterSpacing:1,marginBottom:18}}>SOLUTION RÉELLE</div>
+                <h1 style={{fontSize:38,fontWeight:800,lineHeight:1.12,marginBottom:16,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>
+                  Votre boutique Qurios<br/>
+                  <span style={{background:"linear-gradient(90deg,#1a7a56,#25d366)",WebkitBackgroundClip:"text",WebkitTextFillColor:"transparent"}}>sur WhatsApp</span>
+                </h1>
+                <p style={{fontSize:16,color:"#4a5c55",lineHeight:1.7,maxWidth:480,marginBottom:28}}>
+                  Catalogue complet, panier interactif, recommandations personnalisées et prise de commande — tout depuis WhatsApp, 24h/24.
+                </p>
+                <div style={{display:"flex",flexDirection:"column",gap:14,marginBottom:28}}>
+                  {[["🛒","Catalogue réel qurios.tn — 20+ produits avec prix"],["🎯","Recommandation selon l'objectif du client"],["🧺","Panier interactif — ajout, modification, suppression"],["📦","Commande en 1 message — livraison à domicile"],["📊","Chaque vente remonte au Dashboard Admin"]].map(([e,t])=>(
+                    <div key={t} style={{display:"flex",alignItems:"center",gap:12,fontSize:14.5,color:"#2c3a35"}}>
+                      <span style={{fontSize:20,flexShrink:0}}>{e}</span>{t}
+                    </div>
+                  ))}
+                </div>
+                <div style={{background:"linear-gradient(135deg,#e7f7ed,#d4f0e5)",padding:"14px 18px",borderRadius:13,display:"inline-flex",alignItems:"center",gap:10,fontSize:13.5,fontWeight:600,color:"#0f7a4f",border:"1px solid #b2dfce"}}>
+                  👉 Essayez : parcourez le catalogue et passez une commande →
+                </div>
+              </div>
+              <WA/>
+            </div>
+          )
         ):(
           <Dashboard/>
         )}
       </main>
-      <footer style={{textAlign:"center",padding:"20px",color:"#9aa5a0",fontSize:12.5,borderTop:"1px solid #e4ece8",background:"#fff"}}>
-        © 2026 Qurios — Tous droits réservés · <a href="https://qurios.tn" style={{color:"#1a7a56"}}>qurios.tn</a>
+
+      {/* ── Bottom nav mobile ── */}
+      {mobile&&(
+        <nav style={{position:"fixed",bottom:0,left:0,right:0,background:"#fff",borderTop:"1px solid #e4ece8",display:"flex",zIndex:30,boxShadow:"0 -4px 20px rgba(0,0,0,.08)"}}>
+          {[["whatsapp","💬","WhatsApp"],["dashboard","📊","Dashboard"]].map(([v,ic,lb])=>(
+            <button key={v} onClick={()=>setView(v)} style={{flex:1,border:"none",background:"none",padding:"12px 8px 10px",display:"flex",flexDirection:"column",alignItems:"center",gap:3,color:view===v?"#1a7a56":"#8a9490",fontFamily:"'DM Sans',sans-serif"}}>
+              <span style={{fontSize:22}}>{ic}</span>
+              <span style={{fontSize:11,fontWeight:700}}>{lb}</span>
+              {view===v&&<div style={{width:20,height:3,background:"#1a7a56",borderRadius:2}}/>}
+            </button>
+          ))}
+        </nav>
+      )}
+
+      <footer style={{textAlign:"center",padding:"16px",color:"#9aa5a0",fontSize:12,borderTop:"1px solid #e4ece8",background:"#fff"}}>
+        © 2026 Qurios · <a href="https://qurios.tn" style={{color:"#1a7a56"}}>qurios.tn</a>
       </footer>
     </div>
   );

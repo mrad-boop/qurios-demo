@@ -792,10 +792,23 @@ function Dashboard(){
                       </div>
                     </div>
                   </div>
-                  <div style={{textAlign:"center",background:"rgba(0,0,0,.2)",borderRadius:14,padding:"16px 20px",border:"1px solid rgba(37,211,102,.15)",flexShrink:0}}>
-                    <div style={{color:"rgba(255,255,255,.5)",fontSize:11,marginBottom:4}}>Option complémentaire</div>
-                    <div style={{color:"#25d366",fontWeight:800,fontSize:32,fontFamily:"'Plus Jakarta Sans',sans-serif",lineHeight:1}}>+79 DT</div>
-                    <div style={{color:"rgba(255,255,255,.4)",fontSize:11,marginTop:6}}>en plus du forfait de base</div>
+                  <div style={{background:"rgba(0,0,0,.25)",borderRadius:14,padding:"16px 18px",border:"1px solid rgba(37,211,102,.15)",flexShrink:0,minWidth:mobile?"100%":200}}>
+                    <div style={{color:"rgba(255,255,255,.5)",fontSize:11,marginBottom:12,textAlign:"center",letterSpacing:.5}}>TARIF SELON VOLUME</div>
+                    {[
+                      {palier:"Starter",  msg:"200 msg",  prix:"79 DT"},
+                      {palier:"Standard", msg:"500 msg",  prix:"149 DT"},
+                      {palier:"Pro",      msg:"1 000 msg",prix:"249 DT"},
+                      {palier:"Illimité", msg:"2 000 msg",prix:"399 DT"},
+                    ].map((r,i)=>(
+                      <div key={r.palier} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 10px",borderRadius:9,marginBottom:4,background:i===1?"rgba(37,211,102,.15)":"rgba(255,255,255,.04)",border:i===1?"1px solid rgba(37,211,102,.3)":"1px solid transparent"}}>
+                        <div>
+                          <div style={{color:"#fff",fontWeight:700,fontSize:12}}>{r.palier}</div>
+                          <div style={{color:"rgba(255,255,255,.45)",fontSize:11}}>{r.msg}/mois</div>
+                        </div>
+                        <div style={{color:i===1?"#25d366":"rgba(255,255,255,.8)",fontWeight:800,fontSize:14}}>{r.prix}</div>
+                      </div>
+                    ))}
+                    <div style={{color:"rgba(255,255,255,.35)",fontSize:10,marginTop:10,textAlign:"center",lineHeight:1.5}}>S'ajoute au forfait de base<br/>Inclut infrastructure + envois</div>
                   </div>
                 </div>
               </div>

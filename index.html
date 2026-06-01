@@ -772,19 +772,30 @@ function Dashboard(){
                         <span style={{color:"#fff",fontWeight:800,fontSize:mobile?15:17,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>Campagnes WhatsApp</span>
                         <span style={{background:"rgba(37,211,102,.15)",border:"1px solid rgba(37,211,102,.3)",color:"#25d366",padding:"2px 8px",borderRadius:20,fontSize:10,fontWeight:700}}>COMING SOON</span>
                       </div>
-                      <p style={{color:"rgba(255,255,255,.6)",fontSize:13,lineHeight:1.6,marginBottom:10,maxWidth:440}}>Envoyez des campagnes ciblées à vos prospects — relances, promotions, nouveaux produits — avec analytics en temps réel.</p>
-                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"4px 12px"}}>
-                        {["🎯 Ciblage avancé","⚡ Envoi en 1 clic","📊 Analytics live","🔄 Relances auto","🛒 Panier abandonné","🎁 Codes promo"].map(f=>(
-                          <span key={f} style={{color:"rgba(255,255,255,.65)",fontSize:12}}>{f}</span>
+                      <p style={{color:"rgba(255,255,255,.6)",fontSize:13,lineHeight:1.7,marginBottom:14,maxWidth:480}}>
+                        Imaginez pouvoir envoyer un message WhatsApp personnalisé à tous vos prospects en une seule action. Avec ce module, vous créez une campagne en quelques clics — choisissez votre audience (par objectif, statut ou produit acheté), rédigez votre message, et envoyez. Chaque prospect reçoit un message qui lui ressemble, au bon moment. Vous suivez en temps réel combien ont ouvert, répondu, et commandé.
+                      </p>
+                      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                        {[
+                          ["🎯","Ciblage précis","Filtrez vos prospects par objectif santé, statut (Nouveau, Contacté…) ou produit acheté. Touchez exactement les bonnes personnes."],
+                          ["⚡","Envoi instantané","Une campagne prête en 3 minutes. Cliquez Envoyer — tous vos prospects reçoivent le message dans la seconde."],
+                          ["📊","Analytics complets","Taux d'ouverture, taux de réponse, conversions générées. Vous savez exactement ce qui fonctionne."],
+                          ["🔄","Scénarios automatiques","Définissez des relances automatiques : si pas de réponse sous 48h, un rappel part tout seul."],
+                          ["🛒","Panier abandonné","Un client a ajouté des produits sans commander ? Il reçoit automatiquement un message de rappel avec son panier."],
+                          ["🎁","Promotions exclusives","Créez des codes promo avec date d'expiration et envoyez-les à vos clients fidèles pour booster les ventes."],
+                        ].map(([ic,t,d])=>(
+                          <div key={t} style={{display:"flex",gap:10,alignItems:"flex-start"}}>
+                            <span style={{fontSize:16,flexShrink:0,marginTop:1}}>{ic}</span>
+                            <div><span style={{color:"#fff",fontWeight:700,fontSize:13}}>{t} — </span><span style={{color:"rgba(255,255,255,.55)",fontSize:12,lineHeight:1.5}}>{d}</span></div>
+                          </div>
                         ))}
                       </div>
                     </div>
                   </div>
                   <div style={{textAlign:"center",background:"rgba(0,0,0,.2)",borderRadius:14,padding:"16px 20px",border:"1px solid rgba(37,211,102,.15)",flexShrink:0}}>
                     <div style={{color:"rgba(255,255,255,.5)",fontSize:11,marginBottom:4}}>Option complémentaire</div>
-                    <div style={{color:"#25d366",fontWeight:800,fontSize:28,fontFamily:"'Plus Jakarta Sans',sans-serif",lineHeight:1}}>+79 DT</div>
-                    <div style={{color:"rgba(255,255,255,.3)",fontSize:11,marginBottom:12}}>en plus du forfait de base</div>
-                    <button style={{background:"rgba(37,211,102,.15)",color:"#25d366",border:"1px solid rgba(37,211,102,.3)",padding:"8px 14px",borderRadius:9,fontWeight:700,fontSize:12,cursor:"default",width:"100%"}}>🔔 Me notifier</button>
+                    <div style={{color:"#25d366",fontWeight:800,fontSize:32,fontFamily:"'Plus Jakarta Sans',sans-serif",lineHeight:1}}>+79 DT</div>
+                    <div style={{color:"rgba(255,255,255,.4)",fontSize:11,marginTop:6}}>en plus du forfait de base</div>
                   </div>
                 </div>
               </div>
@@ -799,19 +810,30 @@ function Dashboard(){
                         <span style={{color:"#fff",fontWeight:800,fontSize:mobile?15:17,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>Avis clients automatisés</span>
                         <span style={{background:"rgba(124,108,240,.2)",border:"1px solid rgba(124,108,240,.4)",color:"#a89cf0",padding:"2px 8px",borderRadius:20,fontSize:10,fontWeight:700}}>COMING SOON</span>
                       </div>
-                      <p style={{color:"rgba(255,255,255,.6)",fontSize:13,lineHeight:1.6,marginBottom:10,maxWidth:440}}>Collectez des avis authentiques après chaque livraison via WhatsApp — sans effort, boostez votre réputation automatiquement.</p>
-                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"4px 12px"}}>
-                        {["💬 Message post-livraison","⭐ Note + commentaire","🖼️ Photos clients","📢 Publication auto","📈 Dashboard satisfaction","🔁 Relance 48h"].map(f=>(
-                          <span key={f} style={{color:"rgba(255,255,255,.65)",fontSize:12}}>{f}</span>
+                      <p style={{color:"rgba(255,255,255,.6)",fontSize:13,lineHeight:1.7,marginBottom:14,maxWidth:480}}>
+                        Les avis clients sont le moteur numéro 1 des ventes en ligne — mais les collecter manuellement est fastidieux. Ce module envoie automatiquement un message WhatsApp à chaque client 48h après sa livraison, lui demande une note et un commentaire. Résultat : des dizaines d'avis authentiques sans que vous leviez le petit doigt.
+                      </p>
+                      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                        {[
+                          ["💬","Message automatique","48h après la livraison, votre client reçoit un message chaleureux lui demandant son retour sur sa commande."],
+                          ["⭐","Note & commentaire","Le client note de 1 à 5 étoiles et laisse un commentaire libre directement dans WhatsApp, sans quitter l'appli."],
+                          ["🖼️","Photos produit","Il peut envoyer des photos du produit reçu. Ces contenus deviennent vos meilleurs arguments de vente."],
+                          ["📢","Publication automatique","Les avis positifs sont intégrés à votre vitrine et partagés automatiquement sur vos canaux."],
+                          ["📈","Dashboard satisfaction","Suivez votre note moyenne, l'évolution dans le temps, et identifiez les produits les mieux notés."],
+                          ["🔁","Relance intelligente","Pas de réponse après 48h ? Un rappel doux est envoyé automatiquement — sans être intrusif."],
+                        ].map(([ic,t,d])=>(
+                          <div key={t} style={{display:"flex",gap:10,alignItems:"flex-start"}}>
+                            <span style={{fontSize:16,flexShrink:0,marginTop:1}}>{ic}</span>
+                            <div><span style={{color:"#fff",fontWeight:700,fontSize:13}}>{t} — </span><span style={{color:"rgba(255,255,255,.55)",fontSize:12,lineHeight:1.5}}>{d}</span></div>
+                          </div>
                         ))}
                       </div>
                     </div>
                   </div>
                   <div style={{textAlign:"center",background:"rgba(0,0,0,.2)",borderRadius:14,padding:"16px 20px",border:"1px solid rgba(124,108,240,.2)",flexShrink:0}}>
                     <div style={{color:"rgba(255,255,255,.5)",fontSize:11,marginBottom:4}}>Option complémentaire</div>
-                    <div style={{color:"#a89cf0",fontWeight:800,fontSize:28,fontFamily:"'Plus Jakarta Sans',sans-serif",lineHeight:1}}>+29 DT</div>
-                    <div style={{color:"rgba(255,255,255,.3)",fontSize:11,marginBottom:12}}>en plus du forfait de base</div>
-                    <button style={{background:"rgba(124,108,240,.15)",color:"#a89cf0",border:"1px solid rgba(124,108,240,.3)",padding:"8px 14px",borderRadius:9,fontWeight:700,fontSize:12,cursor:"default",width:"100%"}}>🔔 Me notifier</button>
+                    <div style={{color:"#a89cf0",fontWeight:800,fontSize:32,fontFamily:"'Plus Jakarta Sans',sans-serif",lineHeight:1}}>+29 DT</div>
+                    <div style={{color:"rgba(255,255,255,.4)",fontSize:11,marginTop:6}}>en plus du forfait de base</div>
                   </div>
                 </div>
               </div>
@@ -826,19 +848,30 @@ function Dashboard(){
                         <span style={{color:"#fff",fontWeight:800,fontSize:mobile?15:17,fontFamily:"'Plus Jakarta Sans',sans-serif"}}>Suivi de commande</span>
                         <span style={{background:"rgba(240,169,60,.15)",border:"1px solid rgba(240,169,60,.35)",color:"#f0a93c",padding:"2px 8px",borderRadius:20,fontSize:10,fontWeight:700}}>COMING SOON</span>
                       </div>
-                      <p style={{color:"rgba(255,255,255,.6)",fontSize:13,lineHeight:1.6,marginBottom:10,maxWidth:440}}>Notifications automatiques à chaque étape — confirmation, expédition, livraison — directement sur WhatsApp, sans intervention manuelle.</p>
-                      <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:"4px 12px"}}>
-                        {["✅ Confirmation auto","🚚 Notif expédition","📍 Lien de suivi","🔔 Rappel non récupéré","⭐ Demande d'avis","📞 Escalade problème"].map(f=>(
-                          <span key={f} style={{color:"rgba(255,255,255,.65)",fontSize:12}}>{f}</span>
+                      <p style={{color:"rgba(255,255,255,.6)",fontSize:13,lineHeight:1.7,marginBottom:14,maxWidth:480}}>
+                        Aujourd'hui, vos clients appellent pour savoir où est leur commande — vous perdez du temps à répondre. Ce module élimine ce problème : dès qu'une commande change de statut dans votre dashboard, votre client reçoit automatiquement une notification WhatsApp. Il est informé à chaque étape, sans que vous fassiez quoi que ce soit.
+                      </p>
+                      <div style={{display:"flex",flexDirection:"column",gap:8}}>
+                        {[
+                          ["✅","Confirmation immédiate","Dès la commande validée, votre client reçoit un récapitulatif complet avec le détail de sa commande et le montant total."],
+                          ["🚚","Notification d'expédition","Quand vous passez la commande en Expédié dans le dashboard, un message part automatiquement avec la date de livraison estimée."],
+                          ["📍","Lien de suivi","Un lien de tracking personnalisé est envoyé au client pour qu'il suive son colis en temps réel, sans vous contacter."],
+                          ["🔔","Rappel colis","Si le colis n'est pas récupéré sous 24h, un rappel automatique est envoyé pour éviter les retours non réclamés."],
+                          ["⭐","Transition vers avis","Une fois livré, la transition vers la collecte d'avis se fait automatiquement — si vous avez aussi l'option Avis clients."],
+                          ["📞","Escalade problème","Si le client signale un problème, une alerte vous est envoyée immédiatement pour que vous puissiez intervenir rapidement."],
+                        ].map(([ic,t,d])=>(
+                          <div key={t} style={{display:"flex",gap:10,alignItems:"flex-start"}}>
+                            <span style={{fontSize:16,flexShrink:0,marginTop:1}}>{ic}</span>
+                            <div><span style={{color:"#fff",fontWeight:700,fontSize:13}}>{t} — </span><span style={{color:"rgba(255,255,255,.55)",fontSize:12,lineHeight:1.5}}>{d}</span></div>
+                          </div>
                         ))}
                       </div>
                     </div>
                   </div>
                   <div style={{textAlign:"center",background:"rgba(0,0,0,.2)",borderRadius:14,padding:"16px 20px",border:"1px solid rgba(240,169,60,.15)",flexShrink:0}}>
                     <div style={{color:"rgba(255,255,255,.5)",fontSize:11,marginBottom:4}}>Option complémentaire</div>
-                    <div style={{color:"#f0a93c",fontWeight:800,fontSize:28,fontFamily:"'Plus Jakarta Sans',sans-serif",lineHeight:1}}>+29 DT</div>
-                    <div style={{color:"rgba(255,255,255,.3)",fontSize:11,marginBottom:12}}>en plus du forfait de base</div>
-                    <button style={{background:"rgba(240,169,60,.12)",color:"#f0a93c",border:"1px solid rgba(240,169,60,.3)",padding:"8px 14px",borderRadius:9,fontWeight:700,fontSize:12,cursor:"default",width:"100%"}}>🔔 Me notifier</button>
+                    <div style={{color:"#f0a93c",fontWeight:800,fontSize:32,fontFamily:"'Plus Jakarta Sans',sans-serif",lineHeight:1}}>+29 DT</div>
+                    <div style={{color:"rgba(255,255,255,.4)",fontSize:11,marginTop:6}}>en plus du forfait de base</div>
                   </div>
                 </div>
               </div>

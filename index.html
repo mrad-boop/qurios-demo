@@ -832,9 +832,10 @@ function Dashboard(){
                     </div>
                   </div>
                   <div style={{textAlign:"center",background:"rgba(0,0,0,.2)",borderRadius:14,padding:"16px 20px",border:"1px solid rgba(124,108,240,.2)",flexShrink:0}}>
-                    <div style={{color:"rgba(255,255,255,.5)",fontSize:11,marginBottom:4}}>Option complémentaire</div>
-                    <div style={{color:"#a89cf0",fontWeight:800,fontSize:32,fontFamily:"'Plus Jakarta Sans',sans-serif",lineHeight:1}}>+29 DT</div>
-                    <div style={{color:"rgba(255,255,255,.4)",fontSize:11,marginTop:6}}>en plus du forfait de base</div>
+                    <div style={{color:"rgba(255,255,255,.5)",fontSize:11,marginBottom:8}}>Prix</div>
+                    <div style={{color:"#a89cf0",fontWeight:800,fontSize:22,fontFamily:"'Plus Jakarta Sans',sans-serif",lineHeight:1.3}}>Variable</div>
+                    <div style={{color:"rgba(255,255,255,.5)",fontSize:12,marginTop:8,lineHeight:1.6}}>Selon le nombre<br/>de messages envoyés</div>
+                    <div style={{color:"rgba(255,255,255,.3)",fontSize:11,marginTop:10,lineHeight:1.5}}>S'ajoute au forfait<br/>de base 199 DT</div>
                   </div>
                 </div>
               </div>
@@ -850,16 +851,14 @@ function Dashboard(){
                         <span style={{background:"rgba(240,169,60,.15)",border:"1px solid rgba(240,169,60,.35)",color:"#f0a93c",padding:"2px 8px",borderRadius:20,fontSize:10,fontWeight:700}}>COMING SOON</span>
                       </div>
                       <p style={{color:"rgba(255,255,255,.6)",fontSize:13,lineHeight:1.7,marginBottom:14,maxWidth:480}}>
-                        Aujourd'hui, vos clients appellent pour savoir où est leur commande — vous perdez du temps à répondre. Ce module élimine ce problème : dès qu'une commande change de statut dans votre dashboard, votre client reçoit automatiquement une notification WhatsApp. Il est informé à chaque étape, sans que vous fassiez quoi que ce soit.
+                        Vos clients peuvent suivre leur commande directement dans le chat WhatsApp — ils tapent leur numéro de commande et reçoivent le statut en temps réel. Zéro appel, zéro email, zéro intervention de votre part.
                       </p>
                       <div style={{display:"flex",flexDirection:"column",gap:8}}>
                         {[
-                          ["✅","Confirmation immédiate","Dès la commande validée, votre client reçoit un récapitulatif complet avec le détail de sa commande et le montant total."],
-                          ["🚚","Notification d'expédition","Quand vous passez la commande en Expédié dans le dashboard, un message part automatiquement avec la date de livraison estimée."],
-                          ["📍","Lien de suivi","Un lien de tracking personnalisé est envoyé au client pour qu'il suive son colis en temps réel, sans vous contacter."],
-                          ["🔔","Rappel colis","Si le colis n'est pas récupéré sous 24h, un rappel automatique est envoyé pour éviter les retours non réclamés."],
-                          ["⭐","Transition vers avis","Une fois livré, la transition vers la collecte d'avis se fait automatiquement — si vous avez aussi l'option Avis clients."],
-                          ["📞","Escalade problème","Si le client signale un problème, une alerte vous est envoyée immédiatement pour que vous puissiez intervenir rapidement."],
+                          ["📦","Statut en temps réel","Le client tape son numéro de commande dans le chat et reçoit instantanément le statut : Confirmé, En préparation, Expédié, Livré."],
+                          ["🔄","Synchronisé avec le dashboard","Dès que vous changez le statut d'une commande dans le dashboard admin, le client voit l'information à jour immédiatement."],
+                          ["📞","Zéro appel entrant","Plus besoin de répondre aux appels 'où est ma commande ?' — le bot répond 24h/24 à la place."],
+                          ["📋","Détail complet","Le client voit le récapitulatif de sa commande, les produits commandés, la ville de livraison et le total."],
                         ].map(([ic,t,d])=>(
                           <div key={t} style={{display:"flex",gap:10,alignItems:"flex-start"}}>
                             <span style={{fontSize:16,flexShrink:0,marginTop:1}}>{ic}</span>
@@ -870,9 +869,9 @@ function Dashboard(){
                     </div>
                   </div>
                   <div style={{textAlign:"center",background:"rgba(0,0,0,.2)",borderRadius:14,padding:"16px 20px",border:"1px solid rgba(240,169,60,.15)",flexShrink:0}}>
-                    <div style={{color:"rgba(255,255,255,.5)",fontSize:11,marginBottom:4}}>Option complémentaire</div>
-                    <div style={{color:"#f0a93c",fontWeight:800,fontSize:32,fontFamily:"'Plus Jakarta Sans',sans-serif",lineHeight:1}}>+29 DT</div>
-                    <div style={{color:"rgba(255,255,255,.4)",fontSize:11,marginTop:6}}>en plus du forfait de base</div>
+                    <div style={{color:"rgba(255,255,255,.5)",fontSize:11,marginBottom:8}}>Inclus dans</div>
+                    <div style={{color:"#f0a93c",fontWeight:800,fontSize:22,fontFamily:"'Plus Jakarta Sans',sans-serif",lineHeight:1.3}}>Forfait<br/>de base</div>
+                    <div style={{color:"rgba(255,255,255,.4)",fontSize:11,marginTop:8,lineHeight:1.5}}>199 DT<br/>Aucun coût<br/>supplémentaire</div>
                   </div>
                 </div>
               </div>
@@ -882,17 +881,13 @@ function Dashboard(){
             {/* Récap */}
             <div style={{background:"linear-gradient(135deg,#f0faf5,#e7f7ed)",borderRadius:18,padding:mobile?"18px":"22px 28px",border:"2px solid #b2dfce",display:"flex",flexWrap:"wrap",justifyContent:"space-between",alignItems:"center",gap:14}}>
               <div>
-                <div style={{fontWeight:800,fontSize:mobile?14:17,fontFamily:"'Plus Jakarta Sans',sans-serif",marginBottom:4}}>🎯 Pack tout inclus</div>
-                <div style={{color:"#5a6661",fontSize:13}}>Assistant + Campagnes + Avis + Suivi commande</div>
+                <div style={{fontWeight:800,fontSize:mobile?14:17,fontFamily:"'Plus Jakarta Sans',sans-serif",marginBottom:4}}>🎯 Options disponibles</div>
+                <div style={{color:"#5a6661",fontSize:13}}>Campagnes WhatsApp + Avis clients — prix variable selon vos envois</div>
               </div>
               <div style={{textAlign:mobile?"left":"right"}}>
                 <div style={{color:"#9aa5a0",fontSize:12,marginBottom:2}}>Pack complet (les 3 options)</div>
-                <div style={{display:"flex",alignItems:"baseline",gap:8}}>
-                  <div style={{fontWeight:800,fontSize:mobile?22:28,color:"#1a7a56",fontFamily:"'Plus Jakarta Sans',sans-serif",lineHeight:1}}>99 DT</div>
-                  <div style={{fontSize:13,color:"#e53e3e",textDecoration:"line-through",fontWeight:600}}>137 DT</div>
-                </div>
-                <div style={{fontSize:11,color:"#0f9d58",fontWeight:700,marginTop:3}}>🎉 Économisez 38 DT — au lieu de 137 DT</div>
-                <div style={{fontSize:11,color:"#9aa5a0",marginTop:2}}>s'ajoute au forfait de base 199 DT</div>
+                <div style={{fontWeight:800,fontSize:mobile?18:22,color:"#1a7a56",fontFamily:"'Plus Jakarta Sans',sans-serif",lineHeight:1.3}}>Variable</div>
+                <div style={{fontSize:12,color:"#5a6661",marginTop:6,lineHeight:1.6}}>Selon le volume de messages<br/>S'ajoute au forfait de base 199 DT</div>
               </div>
             </div>
           </div>

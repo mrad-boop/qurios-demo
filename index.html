@@ -792,23 +792,11 @@ function Dashboard(){
                       </div>
                     </div>
                   </div>
-                  <div style={{background:"rgba(0,0,0,.25)",borderRadius:14,padding:"16px 18px",border:"1px solid rgba(37,211,102,.15)",flexShrink:0,minWidth:mobile?"100%":200}}>
-                    <div style={{color:"rgba(255,255,255,.5)",fontSize:11,marginBottom:12,textAlign:"center",letterSpacing:.5}}>TARIF SELON VOLUME</div>
-                    {[
-                      {palier:"Starter",  msg:"200 msg",  prix:"79 DT"},
-                      {palier:"Standard", msg:"500 msg",  prix:"149 DT"},
-                      {palier:"Pro",      msg:"1 000 msg",prix:"249 DT"},
-                      {palier:"Illimité", msg:"2 000 msg",prix:"399 DT"},
-                    ].map((r,i)=>(
-                      <div key={r.palier} style={{display:"flex",justifyContent:"space-between",alignItems:"center",padding:"7px 10px",borderRadius:9,marginBottom:4,background:i===1?"rgba(37,211,102,.15)":"rgba(255,255,255,.04)",border:i===1?"1px solid rgba(37,211,102,.3)":"1px solid transparent"}}>
-                        <div>
-                          <div style={{color:"#fff",fontWeight:700,fontSize:12}}>{r.palier}</div>
-                          <div style={{color:"rgba(255,255,255,.45)",fontSize:11}}>{r.msg}/mois</div>
-                        </div>
-                        <div style={{color:i===1?"#25d366":"rgba(255,255,255,.8)",fontWeight:800,fontSize:14}}>{r.prix}</div>
-                      </div>
-                    ))}
-                    <div style={{color:"rgba(255,255,255,.35)",fontSize:10,marginTop:10,textAlign:"center",lineHeight:1.5}}>S'ajoute au forfait de base<br/>Inclut infrastructure + envois</div>
+                  <div style={{textAlign:"center",background:"rgba(0,0,0,.2)",borderRadius:14,padding:"16px 20px",border:"1px solid rgba(37,211,102,.15)",flexShrink:0}}>
+                    <div style={{color:"rgba(255,255,255,.5)",fontSize:11,marginBottom:8}}>Prix</div>
+                    <div style={{color:"#25d366",fontWeight:800,fontSize:22,fontFamily:"'Plus Jakarta Sans',sans-serif",lineHeight:1.3}}>Variable</div>
+                    <div style={{color:"rgba(255,255,255,.5)",fontSize:12,marginTop:8,lineHeight:1.6}}>Selon le nombre<br/>de messages envoyés</div>
+                    <div style={{color:"rgba(255,255,255,.3)",fontSize:11,marginTop:10,lineHeight:1.5}}>S'ajoute au forfait<br/>de base 199 DT</div>
                   </div>
                 </div>
               </div>
